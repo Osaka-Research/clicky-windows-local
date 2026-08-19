@@ -41,10 +41,17 @@ public class AudioCaptureService : IDisposable
         if (!_running) return;
         _running = false;
 
-        Logger.Log($"[Audio] Stopping. Total chunks sent to ASR: {_chunksSent}");
-        _capture?.StopRecording();
-        _capture?.Dispose();
+        // Snapshot and clear the field before the (blocking, uncancellable) native calls
+        // below. If a caller abandons this Stop() call after a timeout because it's
+        // wedged, and later starts a new capture, that fresh _capture must never get
+        // reached by this call finishing late and nulling it back out from under it --
+        // operating only on the local reference makes that impossible.
+        var capture = _capture;
         _capture = null;
+
+        Logger.Log($"[Audio] Stopping. Total chunks sent to ASR: {_chunksSent}");
+        capture?.StopRecording();
+        capture?.Dispose();
     }
 
     private void OnDataAvailable(object? sender, WaveInEventArgs e)

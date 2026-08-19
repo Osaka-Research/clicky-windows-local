@@ -159,8 +159,7 @@ public class CompanionManager : IAsyncDisposable
         State = AppState.Processing;
 
         _audio.AudioChunkAvailable -= OnAudioChunk;
-        _audio.Stop();
-        Logger.Log("[Audio] Capture stopped");
+        await StopAudioWithTimeoutAsync();
 
         byte[] clip;
         lock (_audioBuffer) clip = _audioBuffer.ToArray();
@@ -226,6 +225,30 @@ public class CompanionManager : IAsyncDisposable
     private void OnAudioChunk(byte[] pcm16)
     {
         lock (_audioBuffer) _audioBuffer.AddRange(pcm16);
+    }
+
+    // NAudio's WasapiCapture.StopRecording()/Dispose() are plain blocking calls with no
+    // cancellation support -- if the native WASAPI stop call itself ever wedges (driver
+    // quirk, device disconnect mid-capture), there's no way to un-stick it. Racing it
+    // against a timeout at least keeps the app responsive instead of hanging the whole
+    // turn (and every turn after it) forever; the abandoned capture object leaks, but
+    // the next Start() creates a fresh one regardless, so the app self-recovers.
+    private static readonly TimeSpan AudioStopTimeout = TimeSpan.FromSeconds(5);
+
+    private async Task StopAudioWithTimeoutAsync()
+    {
+        var stopTask = Task.Run(() => _audio.Stop());
+        var winner = await Task.WhenAny(stopTask, Task.Delay(AudioStopTimeout));
+        if (winner == stopTask)
+        {
+            Logger.Log("[Audio] Capture stopped");
+        }
+        else
+        {
+            Logger.Error($"[Audio] Stop() didn't return within {AudioStopTimeout.TotalSeconds:F0}s " +
+                         "(likely a stuck native WASAPI call) — abandoning it and continuing. " +
+                         "Next capture will use a fresh device handle.");
+        }
     }
 
     // ── Claude + live reply panel ───────────────────────────────────────────
