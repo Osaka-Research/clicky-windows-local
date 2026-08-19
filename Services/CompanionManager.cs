@@ -113,7 +113,20 @@ public class CompanionManager : IAsyncDisposable
         return Task.CompletedTask;
     }
 
-    private const string ScreenshotQaPrompt = "Answer every question visible on the screen, one by one.";
+    // Shown in the reply panel's "you said" line -- short, since the real instruction below is not.
+    private const string ScreenshotQaDisplayLabel = "Answer everything relevant on screen";
+
+    private const string ScreenshotQaPrompt = """
+        First figure out what's actually on screen and what the user is likely doing with it --
+        a browser showing a webpage, a video player (e.g. YouTube) mid-playback, a code editor,
+        a PDF, a chat app, etc. Then focus on the content that context implies, not just
+        whatever text happens to be biggest: if it's a webpage, the questions are almost always
+        in the page content itself, not the browser chrome/tabs/bookmarks bar. If it's a video
+        paused or playing, focus on what's happening in the video frame and any caption/subtitle
+        text, not the sidebar of suggested videos or comments below it, unless those are clearly
+        what's being asked about. Once you've placed it, answer every question visible in that
+        relevant area, one by one.
+        """;
 
     /// <summary>
     /// Ctrl+Shift+Q: fires immediately on key press, no hold/release and no mic involved
@@ -142,7 +155,7 @@ public class CompanionManager : IAsyncDisposable
         }
 
         TranscriptConfirmed?.Invoke();
-        TranscriptReady?.Invoke(ScreenshotQaPrompt, _modeThisTurn);
+        TranscriptReady?.Invoke(ScreenshotQaDisplayLabel, _modeThisTurn);
         await ProcessResponseAsync(ScreenshotQaPrompt, screenshots);
     }
 
