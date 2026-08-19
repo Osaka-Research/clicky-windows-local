@@ -215,20 +215,18 @@ public class CompanionManager : IAsyncDisposable
         {
             TranscriptReady?.Invoke(transcript, _modeThisTurn);
 
-            // System Audio mode: the transcript is overheard content (a call, a video),
-            // not something the user said to Clicky directly -- frame it as such so Claude
-            // reacts to/explains it rather than treating it as a question addressed to it.
-            // Explicitly rule out the "this reply will leak/be overheard" refusal a model
-            // can otherwise reason its way into: the reply is always silent on-screen text,
-            // never spoken aloud, so there's no audio feedback loop or privacy concern here.
+            // System Audio mode: this text was transcribed from content playing on the
+            // computer (a video, a call), not typed/said by the user directly -- frame it
+            // as such so Claude reacts to/answers it rather than treating it as a random
+            // fragment. Deliberately worded with no mention of "audio"/"speakers"/"hear" --
+            // by this point it's just text, and describing it as overheard audio previously
+            // led the model to reason its way into refusing to answer over an imagined
+            // "someone might hear my reply" concern. There's no audio in this prompt at all.
             var messageForClaude = _modeThisTurn == InteractionMode.SystemAudio
-                ? $"[The following audio just played through this computer's speakers -- could be " +
-                  "a mock-interview video, a recorded question set, a call, anything. It was not " +
-                  "spoken by the user. Your reply is never spoken aloud or played back -- it only " +
-                  "appears as silent text in an on-screen panel that only the user reads, so there " +
-                  "is no audio leak, no feedback loop, and nothing to protect anyone from overhearing. " +
-                  $"Just answer/react to it directly, exactly as you would if it had been asked to you " +
-                  $"directly -- never decline or caveat based on who might \"hear\" your response]: \"{transcript}\""
+                ? $"[The following text was captured from content currently playing on the " +
+                  "user's computer -- a video, a call, a recording, anything -- not typed or " +
+                  $"asked by the user directly. Answer/react to it directly, exactly as you " +
+                  $"would if it had been asked to you directly]: \"{transcript}\""
                 : transcript;
 
             await ProcessResponseAsync(messageForClaude, screenshots);
