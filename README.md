@@ -53,10 +53,10 @@ fires if you press the hotkey again while a reply's still streaming in).
 3. First push-to-talk after a fresh install pauses while the Whisper model downloads
    (~1.5GB for the default `medium.en` size — cached under %LOCALAPPDATA% after that,
    survives rebuilds/reinstalls).
-4. Hold `Ctrl+Shift+Space` for **Action mode**, `Ctrl+Shift+A` for **Answer mode**, or
-   `Ctrl+Shift+R` for **System Audio mode** (all default, see below), speak (or, for
+4. Hold `Ctrl+Shift+1` for **Action mode**, `Ctrl+Shift+2` for **Answer mode**, or
+   `Ctrl+Shift+3` for **System Audio mode** (all default, see below), speak (or, for
    System Audio, just let whatever's playing keep playing), release. Or just tap
-   `Ctrl+Shift+Q` for **Screenshot Q&A** — no hold needed, no mic involved at all.
+   `Ctrl+Shift+4` for **Screenshot Q&A** — no hold needed, no mic involved at all.
 
 ## Four modes
 
@@ -64,7 +64,7 @@ Four independent hotkeys, all wired straight through `HotkeyService` (supports
 registering any number of them) to the same `CompanionManager`, distinguished by
 `InteractionMode` (`Models/AppState.cs`):
 
-| | Action — `Ctrl+Shift+Space` | Answer — `Ctrl+Shift+A` | System Audio — `Ctrl+Shift+R` | Screenshot Q&A — `Ctrl+Shift+Q` |
+| | Action — `Ctrl+Shift+1` | Answer — `Ctrl+Shift+2` | System Audio — `Ctrl+Shift+3` | Screenshot Q&A — `Ctrl+Shift+4` |
 |---|---|---|---|---|
 | Trigger | Hold, speak, release | Hold, speak, release | Hold, release | **Tap** — fires on press, no hold |
 | Audio source | Microphone | Microphone | **Speakers** (WASAPI loopback) | None |
@@ -107,12 +107,28 @@ running on modest hardware and you want near-instant responses; `small`/`medium`
 their `.en` variants) if you have the CPU (or a GPU — see below) to
 spare and want fewer misheard commands.
 
-## GPU acceleration (optional)
+## GPU acceleration
 
-Default build runs Whisper inference on CPU (`Whisper.net.Runtime`). If the machine has
-an NVIDIA GPU, swap that package reference in the `.csproj` for
-`Whisper.net.Runtime.Cuda` instead — same API, no code changes needed, meaningfully
-faster transcription especially at `small`/`medium` model sizes.
+Both `Whisper.net.Runtime` (CPU) and `Whisper.net.Runtime.Cuda` are referenced in the
+`.csproj` together — Whisper.net auto-detects and prefers CUDA when a working GPU
+setup is present, falling back to CPU otherwise. No code change either way.
+
+**The CUDA runtime DLL is pinned to a specific CUDA major version** — check with
+`Select-String -Path runtimes\cuda\win-x64\ggml-cuda-whisper.dll -Pattern 'cudart64_\d+' -Encoding Ascii`
+to see which one your build actually needs (currently `cudart64_12`, i.e. **CUDA
+Toolkit 12.x** — not 13.x, even though 13.x is winget's/NVIDIA's current default).
+Windows DLL loading is exact-name, no cross-major fallback: if the installed Toolkit
+is the wrong major version, `ggml-cuda-whisper.dll` fails to load its dependency and
+the *whole app crashes* on the `WhisperFactory.FromPath()` call — silently, no managed
+exception, nothing in `clicky.log` — rather than gracefully falling back to CPU. Multiple
+CUDA Toolkit major versions can be installed side by side with no conflict (they live in
+separate `CUDA\v12.x` / `CUDA\v13.x` folders under `C:\Program Files\NVIDIA GPU Computing
+Toolkit`), so if you already have a newer one for something else, just add 12.x alongside
+it rather than replacing anything.
+
+Also needs a driver new enough for CUDA 12.x (check with `nvidia-smi`, look at the `CUDA
+Version` it reports) — a several-year-old driver may only support CUDA 10.x/11.x and
+need updating first.
 
 ## What's unchanged from clicky_windows
 

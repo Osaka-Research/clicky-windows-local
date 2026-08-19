@@ -81,6 +81,16 @@ public partial class MainWindow : Window
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         _hotkey.Register(this);
+
+        // A hotkey failing to register (most likely claimed by another running app) used
+        // to crash the whole app before it even showed a window. Now it just leaves that
+        // one mode unavailable -- surface it via the same feedback bubble used for other
+        // silent failures, so it's not just a log line no one will see.
+        foreach (var failed in _hotkey.FailedHotkeys)
+        {
+            var desc = ClickyWindows.Helpers.Win32.DescribeHotkey(failed.Modifiers, failed.VirtualKey);
+            _overlay.ShowFeedback($"{desc} is already used by another app — that mode won't respond");
+        }
     }
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)

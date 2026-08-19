@@ -21,13 +21,23 @@ public class HotkeyService : IDisposable
         public required Action OnPressed;
         public required Action OnReleased;
         public bool IsPressed;
+        public bool Registered;
     }
+
+    public record FailedHotkey(uint Modifiers, uint VirtualKey, int Win32Error);
 
     private const int FirstHotkeyId = 9001;
 
     private readonly List<Binding> _bindings = new();
     private IntPtr _hwnd;
     private HwndSource? _hwndSource;
+
+    /// <summary>
+    /// Any hotkeys that failed to register (most likely another running app already
+    /// claimed that combination) -- populated after Register(window) returns. Those
+    /// modes are simply unavailable this run rather than the whole app refusing to start.
+    /// </summary>
+    public IReadOnlyList<FailedHotkey> FailedHotkeys { get; private set; } = [];
 
     /// <summary>
     /// Queues a hotkey to register on the next Register(window) call. modifiers/virtualKey
@@ -57,15 +67,22 @@ public class HotkeyService : IDisposable
         _hwndSource = HwndSource.FromHwnd(_hwnd);
         _hwndSource?.AddHook(WndProc);
 
+        var failed = new List<FailedHotkey>();
         foreach (var b in _bindings)
         {
-            bool ok = Win32.RegisterHotKey(_hwnd, b.Id, b.Modifiers, b.VirtualKey);
-            if (!ok)
+            b.Registered = Win32.RegisterHotKey(_hwnd, b.Id, b.Modifiers, b.VirtualKey);
+            if (!b.Registered)
             {
+                // Most likely another running app already claimed this exact combination
+                // (e.g. a newly-installed overlay/capture tool). Previously this threw and
+                // took the whole app down before it even showed a window -- now it just
+                // logs and leaves that one mode unavailable; the other hotkeys still work.
                 int err = Marshal.GetLastWin32Error();
-                throw new InvalidOperationException($"RegisterHotKey failed (error {err}). Try a different hotkey combination.");
+                Logger.Error($"[Hotkey] RegisterHotKey failed for modifiers={b.Modifiers:X} vk=0x{b.VirtualKey:X} (error {err}) — probably claimed by another app. That mode won't respond this run.");
+                failed.Add(new FailedHotkey(b.Modifiers, b.VirtualKey, err));
             }
         }
+        FailedHotkeys = failed;
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -118,7 +135,7 @@ public class HotkeyService : IDisposable
     {
         if (_hwnd != IntPtr.Zero)
         {
-            foreach (var b in _bindings)
+            foreach (var b in _bindings.Where(b => b.Registered))
                 Win32.UnregisterHotKey(_hwnd, b.Id);
         }
         _hwndSource?.RemoveHook(WndProc);

@@ -66,4 +66,22 @@ internal static class Win32
         public int X;
         public int Y;
     }
+
+    /// <summary>Human-readable form of a MOD_*/VK_* combination, e.g. "Ctrl+Shift+Space".</summary>
+    public static string DescribeHotkey(uint modifiers, uint virtualKey)
+    {
+        var parts = new List<string>();
+        if ((modifiers & MOD_SHIFT) != 0) parts.Add("Shift");
+        if ((modifiers & MOD_CONTROL) != 0) parts.Add("Ctrl");
+        if ((modifiers & MOD_ALT) != 0) parts.Add("Alt");
+        if ((modifiers & MOD_WIN) != 0) parts.Add("Win");
+        parts.Add(virtualKey switch
+        {
+            0x20 => "Space",
+            >= 0x30 and <= 0x39 => ((char)virtualKey).ToString(), // '0'-'9'
+            >= 0x41 and <= 0x5A => ((char)virtualKey).ToString(), // 'A'-'Z'
+            _ => $"Key(0x{virtualKey:X})",
+        });
+        return string.Join("+", parts);
+    }
 }

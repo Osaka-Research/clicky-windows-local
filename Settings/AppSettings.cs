@@ -19,26 +19,30 @@ public class AppSettings
     // slower, more RAM. Downloaded once on first run and cached under whisper-models/.
     public string WhisperModelSize { get; set; } = "medium.en";
 
-    // Action mode push-to-talk — default: Ctrl+Shift+Space. Sends a screenshot with the
+    // Number-key combos (1-4) rather than letters/Space: far less likely to already be
+    // claimed by some other running app's global shortcut than common combos like
+    // Ctrl+Shift+Space or Ctrl+Shift+A -- a real conflict crashed the app on startup once.
+
+    // Action mode push-to-talk — default: Ctrl+Shift+1. Sends a screenshot with the
     // question; Claude can point at (or, in clicky-android, tap) something on screen.
     public uint HotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
-    public uint HotkeyVirtualKey { get; set; } = 0x20; // VK_SPACE
+    public uint HotkeyVirtualKey { get; set; } = 0x31; // VK_1
 
-    // Answer mode push-to-talk — default: Ctrl+Shift+A. Pure Q&A, no screenshot is
+    // Answer mode push-to-talk — default: Ctrl+Shift+2. Pure Q&A, no screenshot is
     // captured or sent at all -- for when you don't want the current screen shared.
     public uint AnswerHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
-    public uint AnswerHotkeyVirtualKey { get; set; } = 0x41; // VK_A
+    public uint AnswerHotkeyVirtualKey { get; set; } = 0x32; // VK_2
 
-    // System Audio mode push-to-talk — default: Ctrl+Shift+R. Listens to whatever's
+    // System Audio mode push-to-talk — default: Ctrl+Shift+3. Listens to whatever's
     // currently playing through speakers (a call, a video) via WASAPI loopback instead
     // of the microphone, transcribes that, and reacts to it. No screenshot either.
     public uint SystemAudioHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
-    public uint SystemAudioHotkeyVirtualKey { get; set; } = 0x52; // VK_R
+    public uint SystemAudioHotkeyVirtualKey { get; set; } = 0x33; // VK_3
 
-    // Screenshot Q&A — default: Ctrl+Shift+Q. A single tap (no hold, no mic) captures one
+    // Screenshot Q&A — default: Ctrl+Shift+4. A single tap (no hold, no mic) captures one
     // screenshot and asks Claude to answer every question visible in it.
     public uint ScreenshotQaHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
-    public uint ScreenshotQaHotkeyVirtualKey { get; set; } = 0x51; // VK_Q
+    public uint ScreenshotQaHotkeyVirtualKey { get; set; } = 0x34; // VK_4
 
     // Overlay settings
     public bool ShowCursorOverlay { get; set; } = true;

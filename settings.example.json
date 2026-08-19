@@ -4,12 +4,12 @@
   "ClaudeModel": "claude-sonnet-4-6",
   "WhisperModelSize": "medium.en",
   "HotkeyModifiers": 6,
-  "HotkeyVirtualKey": 32,
+  "HotkeyVirtualKey": 49,
   "AnswerHotkeyModifiers": 6,
-  "AnswerHotkeyVirtualKey": 65,
+  "AnswerHotkeyVirtualKey": 50,
   "SystemAudioHotkeyModifiers": 6,
-  "SystemAudioHotkeyVirtualKey": 82,
+  "SystemAudioHotkeyVirtualKey": 51,
   "ScreenshotQaHotkeyModifiers": 6,
-  "ScreenshotQaHotkeyVirtualKey": 81,
+  "ScreenshotQaHotkeyVirtualKey": 52,
   "ShowCursorOverlay": true
 }

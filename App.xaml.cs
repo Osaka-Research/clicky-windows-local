@@ -132,26 +132,10 @@ public partial class App
         _trayIcon.DoubleClick += (_, _) => OpenLog();
     }
 
-    private string GetActionHotkeyDescription() => DescribeHotkey(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
-    private string GetAnswerHotkeyDescription() => DescribeHotkey(_settings.AnswerHotkeyModifiers, _settings.AnswerHotkeyVirtualKey);
-    private string GetSystemAudioHotkeyDescription() => DescribeHotkey(_settings.SystemAudioHotkeyModifiers, _settings.SystemAudioHotkeyVirtualKey);
-    private string GetScreenshotQaHotkeyDescription() => DescribeHotkey(_settings.ScreenshotQaHotkeyModifiers, _settings.ScreenshotQaHotkeyVirtualKey);
-
-    private static string DescribeHotkey(uint modifiers, uint virtualKey)
-    {
-        var parts = new List<string>();
-        if ((modifiers & 0x0004) != 0) parts.Add("Shift");
-        if ((modifiers & 0x0002) != 0) parts.Add("Ctrl");
-        if ((modifiers & 0x0001) != 0) parts.Add("Alt");
-        if ((modifiers & 0x0008) != 0) parts.Add("Win");
-        parts.Add(virtualKey switch
-        {
-            0x20 => "Space",
-            >= 0x41 and <= 0x5A => ((char)virtualKey).ToString(), // 'A'-'Z'
-            _ => $"Key(0x{virtualKey:X})",
-        });
-        return string.Join("+", parts);
-    }
+    private string GetActionHotkeyDescription() => Helpers.Win32.DescribeHotkey(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
+    private string GetAnswerHotkeyDescription() => Helpers.Win32.DescribeHotkey(_settings.AnswerHotkeyModifiers, _settings.AnswerHotkeyVirtualKey);
+    private string GetSystemAudioHotkeyDescription() => Helpers.Win32.DescribeHotkey(_settings.SystemAudioHotkeyModifiers, _settings.SystemAudioHotkeyVirtualKey);
+    private string GetScreenshotQaHotkeyDescription() => Helpers.Win32.DescribeHotkey(_settings.ScreenshotQaHotkeyModifiers, _settings.ScreenshotQaHotkeyVirtualKey);
 
     private void ShowBalloon(string message, ToolTipIcon icon)
     {
