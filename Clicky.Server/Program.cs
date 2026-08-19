@@ -15,7 +15,7 @@ if (string.IsNullOrWhiteSpace(settings.AnthropicApiKey))
 {
     settings.Save(); // write a template so there's something to edit
     Console.WriteLine("No AnthropicApiKey configured yet. Edit this file and restart:");
-    Console.WriteLine($"  {Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}/ClickyServer/settings.json");
+    Console.WriteLine($"  {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ClickyServer", "settings.json")}");
     return;
 }
 if (string.IsNullOrWhiteSpace(settings.ServerAuthToken))
