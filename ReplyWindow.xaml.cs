@@ -33,8 +33,13 @@ public partial class ReplyWindow : Window
             ModeLabel.Foreground = includeScreen
                 ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x7C, 0x8A, 0xFF))  // periwinkle, matches original accent
                 : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x4C, 0xD9, 0x9C)); // green — no screen shared this turn
-            PositionTopRight();
+
+            // Show() before positioning: DPI detection needs a live PresentationSource,
+            // which doesn't exist until the window has been shown at least once. Positioning
+            // first (as this used to) silently fell back to 1.0x DPI on any scaled display,
+            // pushing the panel off-screen on anything other than 100% scaling.
             Show();
+            PositionTopRight();
             Activate();
         });
     }

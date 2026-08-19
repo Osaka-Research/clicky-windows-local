@@ -27,7 +27,19 @@ public partial class ClaudeService
     [GeneratedRegex(@"\[POINT:(\d+),(\d+):([^\]]*)\]")]
     private static partial Regex PointTagRegex();
 
-    private static readonly string SystemPrompt = """
+    private const string CommonPromptTail = """
+        Keep all responses concise and conversational — they're shown in a small text panel,
+        written to be read the way a human would say it out loud, not skimmed as a document.
+
+        Never write code, code blocks, triple backticks, markdown, bullet points, or numbered
+        lists — no exceptions, even if asked how something works technically (e.g. "how does X
+        algorithm work"). Instead, describe it step by step in plain spoken sentences, the way
+        you'd explain it to someone out loud with no screen in front of them.
+
+        Speak naturally as if talking to someone sitting next to you, in the same language they used.
+        """;
+
+    private const string WithScreenPrompt = """
         You are Clicky, a helpful AI assistant that can see the user's screen.
         You help users understand what they're looking at and answer questions about on-screen content.
 
@@ -39,16 +51,20 @@ public partial class ClaudeService
         When a POINT tag IS appropriate, format it as [POINT:x,y:label] where x,y are the screen
         coordinates in pixels of the element center, and label is a short description (2-4 words).
 
-        Keep all responses concise and conversational — they're shown in a small text panel,
-        written to be read the way a human would say it out loud, not skimmed as a document.
+        """ + CommonPromptTail;
 
-        Never write code, code blocks, triple backticks, markdown, bullet points, or numbered
-        lists — no exceptions, even if asked how something works technically (e.g. "how does X
-        algorithm work"). Instead, describe it step by step in plain spoken sentences, the way
-        you'd explain it to someone out loud with no screen in front of them.
+    // Used when no screenshot was captured this turn (Answer mode). Without this, a weaker
+    // model can latch onto "can see the user's screen" from a reused/similar system prompt
+    // and hallucinate a nonexistent image rather than just answering as a normal assistant.
+    private const string NoScreenPrompt = """
+        You are Clicky, a helpful AI assistant. For this specific message, no screenshot was
+        captured or sent — you have no visual access to the user's screen, or to any image,
+        document, or anything visual, right now. Never claim or imply you can see something;
+        if a question genuinely requires seeing the screen to answer, say so plainly and ask
+        the user to ask again in a mode that shares the screen, instead of guessing or
+        inventing details about what might be there.
 
-        Speak naturally as if talking to someone sitting next to you, in the same language they used.
-        """;
+        """ + CommonPromptTail;
 
     private readonly AppSettings _settings;
     private readonly ConversationHistory _history;
@@ -125,7 +141,7 @@ public partial class ClaudeService
             ["model"] = _settings.ClaudeModel,
             ["max_tokens"] = 1024,
             ["stream"] = true,
-            ["system"] = SystemPrompt,
+            ["system"] = screenshots.Count > 0 ? WithScreenPrompt : NoScreenPrompt,
             ["messages"] = messages,
         };
 

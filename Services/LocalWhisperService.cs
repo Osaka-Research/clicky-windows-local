@@ -10,7 +10,7 @@ namespace ClickyWindows.Services;
 /// AssemblyAIService's realtime cloud WebSocket — there's no streaming/turn-detection
 /// here, just: buffer the whole push-to-talk clip, transcribe it in one shot on release.
 /// Downloads a ggml model once on first run (~140MB for the default "base.en" size) and
-/// caches it next to the exe.
+/// caches it under %LOCALAPPDATA% (survives rebuilds/reinstalls, unlike caching next to the exe).
 /// </summary>
 public class LocalWhisperService : IAsyncDisposable
 {
@@ -24,7 +24,13 @@ public class LocalWhisperService : IAsyncDisposable
     {
         _ggmlType = ParseGgmlType(modelSize);
         _englishOnly = modelSize.Trim().EndsWith(".en", StringComparison.OrdinalIgnoreCase);
-        var dir = Path.Combine(AppContext.BaseDirectory, "whisper-models");
+
+        // %LOCALAPPDATA%, not next to the exe: the build output folder gets wiped/replaced
+        // on every rebuild or reinstall, which would silently force a ~140MB re-download
+        // (and a multi-second stall mid-conversation) every single time.
+        var dir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "ClickyWindowsLocal", "whisper-models");
         Directory.CreateDirectory(dir);
         _modelPath = Path.Combine(dir, $"ggml-{modelSize.ToLowerInvariant()}.bin");
     }
