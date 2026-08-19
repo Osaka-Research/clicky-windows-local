@@ -26,6 +26,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,8">
@@ -35,7 +36,16 @@
                         Padding="4,0" FontSize="12" Click="OnClose" Cursor="Hand"/>
             </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="440">
+            <TextBlock x:Name="TranscriptText"
+                       Grid.Row="1"
+                       Foreground="#8A8F98"
+                       FontFamily="Segoe UI"
+                       FontSize="13"
+                       FontStyle="Italic"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,8"/>
+
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" MaxHeight="420">
                 <TextBlock x:Name="ReplyText"
                            Foreground="#ECEEED"
                            FontFamily="Segoe UI"

@@ -55,7 +55,7 @@ public partial class MainWindow : Window
             () => Dispatcher.Invoke(() => _overlay.PulseSpinner());
 
         // Wire companion events to the live reply panel
-        _companion.ReplyStarted += includeScreen => _reply.BeginReply(includeScreen);
+        _companion.TranscriptReady += (transcript, includeScreen) => _reply.ShowTranscript(transcript, includeScreen);
         _companion.ReplyChunkReceived += chunk => _reply.AppendChunk(chunk);
         _companion.ReplyDismissed += () => Dispatcher.Invoke(() => _reply.Hide());
 

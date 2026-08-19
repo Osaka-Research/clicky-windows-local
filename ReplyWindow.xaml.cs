@@ -20,14 +20,17 @@ public partial class ReplyWindow : Window
     }
 
     /// <summary>
-    /// Clears any previous reply and shows the panel, anchored top-right. [includeScreen]
-    /// labels the panel with which mode produced this reply -- Action (screen was shared)
-    /// or Answer (it wasn't).
+    /// Opens the panel (clearing any previous reply) as soon as Whisper produces a
+    /// transcript -- shown immediately, before Claude has even started replying, so a
+    /// mis-transcription is visible right away instead of only after a confusing answer.
+    /// [includeScreen] labels the panel with which mode produced this turn -- Action
+    /// (screen was shared) or Answer (it wasn't).
     /// </summary>
-    public void BeginReply(bool includeScreen)
+    public void ShowTranscript(string transcript, bool includeScreen)
     {
         Dispatcher.Invoke(() =>
         {
+            TranscriptText.Text = $"“{transcript}”";
             ReplyText.Text = "";
             ModeLabel.Text = includeScreen ? "Clicky — Action" : "Clicky — Answer";
             ModeLabel.Foreground = includeScreen

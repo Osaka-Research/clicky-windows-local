@@ -35,9 +35,10 @@ public class CompanionManager : IAsyncDisposable
     public event Action<string>? FeedbackReceived;
     /// <summary>Fires once the mic has stopped and transcription is about to start — triggers the spinner pulse.</summary>
     public event Action? TranscriptConfirmed;
-    /// <summary>Fires right as Claude's reply starts streaming in — UI should clear/show the reply panel.
-    /// The bool is true for Action mode (screen was shared), false for Answer mode (it wasn't).</summary>
-    public event Action<bool>? ReplyStarted;
+    /// <summary>Fires as soon as Whisper produces a transcript — UI should show the reply panel with
+    /// this text, before Claude has even started replying. The bool is true for Action mode
+    /// (screen was shared), false for Answer mode (it wasn't).</summary>
+    public event Action<string, bool>? TranscriptReady;
     /// <summary>Fires with each new piece of reply text as it's safe to reveal (POINT tags never shown, even partially).</summary>
     public event Action<string>? ReplyChunkReceived;
     /// <summary>Fires when a reply in progress is interrupted by a new push-to-talk press — UI should hide the panel.</summary>
@@ -165,6 +166,7 @@ public class CompanionManager : IAsyncDisposable
 
         if (!string.IsNullOrWhiteSpace(transcript))
         {
+            TranscriptReady?.Invoke(transcript, _includeScreenThisTurn);
             await ProcessResponseAsync(transcript, screenshots);
         }
         else
@@ -209,7 +211,6 @@ public class CompanionManager : IAsyncDisposable
                 {
                     started = true;
                     State = AppState.Speaking;
-                    ReplyStarted?.Invoke(_includeScreenThisTurn);
                 }
 
                 // Only reveal text we're sure isn't the start of an in-progress [POINT:...] tag —

@@ -27,18 +27,21 @@ still talking.
 ## Why a live reply panel instead of TTS
 
 `ReplyWindow` is a small always-on-top, borderless panel anchored to the top-right
-corner (grows downward, capped height + scrollable past that) that streams Claude's
-answer in as it's generated — no waiting for the full response, no audio playback
-pipeline at all. Text you read instead of a voice you wait through; closable any time
-via its own `×` button.
+corner (grows downward, capped height + scrollable past that) that shows both what you
+said and Claude's answer streaming in as it's generated — no waiting for the full
+response, no audio playback pipeline at all. The transcript line (italic, dim) appears
+the instant Whisper finishes, before Claude has even started replying, so a
+mis-transcription is obvious right away instead of only showing up as a confusing
+answer. Text you read instead of a voice you wait through; closable any time via its
+own `×` button.
 
-`CompanionManager` streams safely: it tracks the last unclosed `[` in the raw response
-and holds back everything from there on, so a `[POINT:...]` tag never flashes on
-screen even partially while it's still arriving — only revealed (stripped, i.e. never
-shown at all) once it's either completed or turns out not to be a tag. Three new events
-drive it: `ReplyStarted` (clear + show the panel), `ReplyChunkReceived` (append text),
-`ReplyDismissed` (hide it — fires if you press the hotkey again while a reply's still
-streaming in).
+`CompanionManager` streams the answer safely: it tracks the last unclosed `[` in the
+raw response and holds back everything from there on, so a `[POINT:...]` tag never
+flashes on screen even partially while it's still arriving — only revealed (stripped,
+i.e. never shown at all) once it's either completed or turns out not to be a tag. Three
+events drive the panel: `TranscriptReady` (show it with the "you said" line, as soon as
+Whisper is done), `ReplyChunkReceived` (append answer text), `ReplyDismissed` (hide it —
+fires if you press the hotkey again while a reply's still streaming in).
 
 ## Setup
 
