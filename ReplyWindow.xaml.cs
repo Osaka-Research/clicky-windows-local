@@ -18,13 +18,13 @@ public partial class ReplyWindow : Window
         InitializeComponent();
     }
 
-    /// <summary>Clears any previous reply and shows the panel, positioned bottom-right.</summary>
+    /// <summary>Clears any previous reply and shows the panel, anchored top-right.</summary>
     public void BeginReply()
     {
         Dispatcher.Invoke(() =>
         {
             ReplyText.Text = "";
-            PositionBottomRight();
+            PositionTopRight();
             Show();
             Activate();
         });
@@ -34,19 +34,18 @@ public partial class ReplyWindow : Window
     public void AppendChunk(string chunk)
     {
         if (string.IsNullOrEmpty(chunk)) return;
-        Dispatcher.Invoke(() =>
-        {
-            ReplyText.Text += chunk;
-            PositionBottomRight(); // re-anchor as height grows (SizeToContent grows upward)
-        });
+        Dispatcher.Invoke(() => ReplyText.Text += chunk);
     }
 
-    private void PositionBottomRight()
+    // Fixed top-right corner — grows downward as text streams in, capped by MaxHeight
+    // (see XAML) with an internal ScrollViewer past that, so it can never spill off
+    // the bottom of the screen the way bottom-anchoring (growing upward) could.
+    private void PositionTopRight()
     {
         var area = Screen.PrimaryScreen!.WorkingArea;
         var dpi = VisualTreeHelper2.GetDpiScale(this);
         Left = area.Right / dpi - Width - PanelMargin;
-        Top = area.Bottom / dpi - ActualHeight - PanelMargin;
+        Top = area.Top / dpi + PanelMargin;
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Hide();
