@@ -26,7 +26,7 @@
     <!-- Offline speech-to-text (whisper.cpp bindings) — replaces AssemblyAI.
          Both CPU and CUDA runtimes referenced together: Whisper.net picks CUDA
          automatically when an NVIDIA GPU + driver are present, falling back to CPU
-         otherwise -- no code change needed either way. -->
+         otherwise — no code change needed either way. -->
     <PackageReference Include="Whisper.net" Version="1.7.4" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.7.4" />
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.7.4" />
