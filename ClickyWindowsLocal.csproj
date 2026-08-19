@@ -24,10 +24,12 @@
     <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
 
     <!-- Offline speech-to-text (whisper.cpp bindings) — replaces AssemblyAI.
-         Runtime picks CPU inference by default; swap to Whisper.net.Runtime.Cuda
-         (NVIDIA) if the machine has a CUDA GPU, see README. -->
+         Both CPU and CUDA runtimes referenced together: Whisper.net picks CUDA
+         automatically when an NVIDIA GPU + driver are present, falling back to CPU
+         otherwise -- no code change needed either way. -->
     <PackageReference Include="Whisper.net" Version="1.7.4" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.7.4" />
+    <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.7.4" />
   </ItemGroup>
 
 </Project>
