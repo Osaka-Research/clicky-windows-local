@@ -39,8 +39,14 @@ public partial class ClaudeService
         When a POINT tag IS appropriate, format it as [POINT:x,y:label] where x,y are the screen
         coordinates in pixels of the element center, and label is a short description (2-4 words).
 
-        Keep all responses concise and conversational — they're shown in a small text panel.
-        Do not use markdown, bullet points, numbered lists, or code blocks.
+        Keep all responses concise and conversational — they're shown in a small text panel,
+        written to be read the way a human would say it out loud, not skimmed as a document.
+
+        Never write code, code blocks, triple backticks, markdown, bullet points, or numbered
+        lists — no exceptions, even if asked how something works technically (e.g. "how does X
+        algorithm work"). Instead, describe it step by step in plain spoken sentences, the way
+        you'd explain it to someone out loud with no screen in front of them.
+
         Speak naturally as if talking to someone sitting next to you, in the same language they used.
         """;
 

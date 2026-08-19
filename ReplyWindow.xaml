@@ -2,9 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Clicky"
-        Width="380"
+        Width="460"
         SizeToContent="Height"
-        MaxHeight="420"
+        MaxHeight="480"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -35,13 +35,14 @@
                         Padding="4,0" FontSize="12" Click="OnClose" Cursor="Hand"/>
             </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="380">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="440">
                 <TextBlock x:Name="ReplyText"
                            Foreground="#ECEEED"
                            FontFamily="Segoe UI"
-                           FontSize="14"
+                           FontSize="19"
+                           FontWeight="SemiBold"
                            TextWrapping="Wrap"
-                           LineHeight="20"/>
+                           LineHeight="27"/>
             </ScrollViewer>
         </Grid>
     </Border>

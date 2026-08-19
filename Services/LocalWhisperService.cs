@@ -73,9 +73,16 @@ public class LocalWhisperService : IAsyncDisposable
         }
     }
 
+    // Hard ceiling on a single transcription — protects against a stuck native call
+    // (e.g. a CUDA kernel/driver stall) hanging the whole app forever instead of just
+    // failing that one turn. Whisper.net checks the token between segments, so this can
+    // only actually preempt at a segment boundary; if the native call is wedged inside a
+    // single segment it still won't return, but this at least caps how long we *wait*.
+    private static readonly TimeSpan TranscribeTimeout = TimeSpan.FromSeconds(45);
+
     /// <summary>
     /// Transcribes a buffer of PCM16 16kHz mono samples (as produced by AudioCaptureService).
-    /// Returns "" for silence/near-empty buffers.
+    /// Returns "" for silence/near-empty buffers, or if it times out.
     /// </summary>
     public async Task<string> TranscribeAsync(byte[] pcm16Mono16k, CancellationToken ct = default)
     {
@@ -84,17 +91,33 @@ public class LocalWhisperService : IAsyncDisposable
         await EnsureModelLoadedAsync();
         if (_factory == null) return "";
 
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeoutCts.CancelAfter(TranscribeTimeout);
+
         using var processor = _factory.CreateBuilder()
             .WithLanguage(_englishOnly ? "en" : "auto")
             .Build();
 
         using var wavStream = ToWavStream(pcm16Mono16k);
 
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         var sb = new StringBuilder();
-        await foreach (var segment in processor.ProcessAsync(wavStream, ct))
+        try
         {
-            sb.Append(segment.Text);
+            await foreach (var segment in processor.ProcessAsync(wavStream, timeoutCts.Token))
+            {
+                sb.Append(segment.Text);
+            }
         }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // Our own timeout fired, not an external cancellation (hotkey interrupt).
+            Logger.Error($"[Whisper] Timed out after {TranscribeTimeout.TotalSeconds:F0}s (elapsed {sw.Elapsed.TotalSeconds:F1}s) — " +
+                         "possible GPU/driver stall. Treating as no speech heard this turn.");
+            return "";
+        }
+
+        Logger.Log($"[Whisper] Transcribed in {sw.Elapsed.TotalSeconds:F1}s");
         return sb.ToString().Trim();
     }
 
