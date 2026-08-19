@@ -15,9 +15,9 @@ public record ClaudeResponse(string Text, List<PointTarget> Points);
 public record PointTarget(int X, int Y, string Label);
 
 /// <summary>
-/// Streams responses from Claude (claude-sonnet-4-6) via Server-Sent Events.
-/// Parses [POINT:x,y:label] tags from the response for overlay positioning.
-/// Maintains conversation history for context across turns.
+/// Streams responses from Claude via Server-Sent Events. Parses [POINT:x,y:label] tags
+/// from the response for overlay positioning. Maintains conversation history for context
+/// across turns.
 /// </summary>
 public partial class ClaudeService
 {
@@ -39,10 +39,9 @@ public partial class ClaudeService
         When a POINT tag IS appropriate, format it as [POINT:x,y:label] where x,y are the screen
         coordinates in pixels of the element center, and label is a short description (2-4 words).
 
-        Keep all responses concise and conversational — responses are spoken aloud via text-to-speech.
+        Keep all responses concise and conversational — they're shown in a small text panel.
         Do not use markdown, bullet points, numbered lists, or code blocks.
-        Speak naturally as if talking to someone sitting next to you.
-        Speak in Turkish all the time.
+        Speak naturally as if talking to someone sitting next to you, in the same language they used.
         """;
 
     private readonly AppSettings _settings;
