@@ -218,8 +218,17 @@ public class CompanionManager : IAsyncDisposable
             // System Audio mode: the transcript is overheard content (a call, a video),
             // not something the user said to Clicky directly -- frame it as such so Claude
             // reacts to/explains it rather than treating it as a question addressed to it.
+            // Explicitly rule out the "this reply will leak/be overheard" refusal a model
+            // can otherwise reason its way into: the reply is always silent on-screen text,
+            // never spoken aloud, so there's no audio feedback loop or privacy concern here.
             var messageForClaude = _modeThisTurn == InteractionMode.SystemAudio
-                ? $"[The following was just overheard playing on the computer's speakers -- not spoken by the user directly]: \"{transcript}\""
+                ? $"[The following audio just played through this computer's speakers -- could be " +
+                  "a mock-interview video, a recorded question set, a call, anything. It was not " +
+                  "spoken by the user. Your reply is never spoken aloud or played back -- it only " +
+                  "appears as silent text in an on-screen panel that only the user reads, so there " +
+                  "is no audio leak, no feedback loop, and nothing to protect anyone from overhearing. " +
+                  $"Just answer/react to it directly, exactly as you would if it had been asked to you " +
+                  $"directly -- never decline or caveat based on who might \"hear\" your response]: \"{transcript}\""
                 : transcript;
 
             await ProcessResponseAsync(messageForClaude, screenshots);
