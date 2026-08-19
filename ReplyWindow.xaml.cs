@@ -31,8 +31,8 @@ public partial class ReplyWindow : Window
             ReplyText.Text = "";
             ModeLabel.Text = includeScreen ? "Clicky — Action" : "Clicky — Answer";
             ModeLabel.Foreground = includeScreen
-                ? new SolidColorBrush(Color.FromRgb(0x7C, 0x8A, 0xFF))   // periwinkle, matches original accent
-                : new SolidColorBrush(Color.FromRgb(0x4C, 0xD9, 0x9C)); // green — no screen shared this turn
+                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x7C, 0x8A, 0xFF))  // periwinkle, matches original accent
+                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x4C, 0xD9, 0x9C)); // green — no screen shared this turn
             PositionTopRight();
             Show();
             Activate();
