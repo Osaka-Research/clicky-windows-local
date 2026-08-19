@@ -22,7 +22,6 @@ public class CompanionManager : IAsyncDisposable
     private readonly ScreenCaptureService _screen;
     private readonly ClaudeService _claude;
     private readonly LocalWhisperService _whisper;
-    private readonly ConversationHistory _history;
 
     private CancellationTokenSource? _sessionCts;
     private readonly List<byte> _audioBuffer = new();
@@ -58,10 +57,9 @@ public class CompanionManager : IAsyncDisposable
     public CompanionManager(AppSettings settings)
     {
         _settings = settings;
-        _history = new ConversationHistory(maxTurns: 10);
         _audio = new AudioCaptureService();
         _screen = new ScreenCaptureService();
-        _claude = new ClaudeService(settings, _history);
+        _claude = new ClaudeService(settings);
         _whisper = new LocalWhisperService(settings.WhisperModelSize);
 
         _audio.PowerLevelChanged += level => AudioLevelChanged?.Invoke(level);
@@ -277,7 +275,7 @@ public class CompanionManager : IAsyncDisposable
 
         try
         {
-            await foreach (var chunk in _claude.StreamResponseAsync(transcript, screenshots, _sessionCts!.Token))
+            await foreach (var chunk in _claude.StreamResponseAsync(transcript, screenshots, _modeThisTurn, _sessionCts!.Token))
             {
                 responseBuilder.Append(chunk);
 

@@ -54,6 +54,11 @@ public partial class ClaudeService
         plausible, specific-sounding one rather than a vague generality — a real interviewer
         can tell the difference, and a script with no concrete detail is useless to read
         verbatim. Same language the question was asked in.
+
+        Never restate, repeat, paraphrase, or acknowledge the question before answering it —
+        no "So you're asking about X", no "Great question", no repeating back what was
+        transcribed or what's on screen. Launch straight into the answer itself, the first
+        word out of your mouth being the first word of the actual response.
         """;
 
     private const string WithScreenPrompt = """
@@ -89,12 +94,25 @@ public partial class ClaudeService
         """ + CommonPromptTail;
 
     private readonly AppSettings _settings;
-    private readonly ConversationHistory _history;
 
-    public ClaudeService(AppSettings settings, ConversationHistory history)
+    // Each hotkey/mode gets its own conversation history -- an Action-mode question and
+    // an unrelated Answer-mode question a minute later must never end up in the same
+    // Claude context, or answers start referencing/repeating the wrong turn.
+    private readonly Dictionary<InteractionMode, ConversationHistory> _histories = new();
+
+    private ConversationHistory HistoryFor(InteractionMode mode)
+    {
+        if (!_histories.TryGetValue(mode, out var history))
+        {
+            history = new ConversationHistory(maxTurns: 10);
+            _histories[mode] = history;
+        }
+        return history;
+    }
+
+    public ClaudeService(AppSettings settings)
     {
         _settings = settings;
-        _history = history;
 
         // Pre-configure headers
         Http.DefaultRequestHeaders.Remove("x-api-key");
@@ -111,8 +129,11 @@ public partial class ClaudeService
     public async IAsyncEnumerable<string> StreamResponseAsync(
         string transcript,
         List<Services.ScreenshotResult> screenshots,
+        InteractionMode mode,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
+        var history = HistoryFor(mode);
+
         // Build the content array: images first, then text
         var contentArray = new JsonArray();
 
@@ -143,7 +164,7 @@ public partial class ClaudeService
 
         // Build messages array with conversation history
         var messages = new JsonArray();
-        foreach (var turn in _history.Turns)
+        foreach (var turn in history.Turns)
         {
             messages.Add(new JsonObject
             {
@@ -222,8 +243,8 @@ public partial class ClaudeService
         // Save to conversation history (strip POINT tags for cleaner history)
         var responseText = fullResponse.ToString();
         var cleanText = PointTagRegex().Replace(responseText, "").Trim();
-        _history.AddUserMessage(transcript);
-        _history.AddAssistantMessage(cleanText);
+        history.AddUserMessage(transcript);
+        history.AddAssistantMessage(cleanText);
     }
 
     /// <summary>
