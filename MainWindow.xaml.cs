@@ -1,4 +1,5 @@
 using System.Windows;
+using ClickyWindows.Models;
 using ClickyWindows.Services;
 using ClickyWindows.Settings;
 
@@ -29,13 +30,20 @@ public partial class MainWindow : Window
         // Action mode: screenshot captured and sent, Claude can point at something on screen.
         _hotkey.AddHotkey(
             settings.HotkeyModifiers, settings.HotkeyVirtualKey,
-            onPressed: () => _ = _companion.OnPushToTalkPressed(includeScreen: true),
+            onPressed: () => _ = _companion.OnPushToTalkPressed(InteractionMode.Action),
             onReleased: () => _ = _companion.OnPushToTalkReleased());
 
         // Answer mode: no screenshot at all, pure Q&A.
         _hotkey.AddHotkey(
             settings.AnswerHotkeyModifiers, settings.AnswerHotkeyVirtualKey,
-            onPressed: () => _ = _companion.OnPushToTalkPressed(includeScreen: false),
+            onPressed: () => _ = _companion.OnPushToTalkPressed(InteractionMode.Answer),
+            onReleased: () => _ = _companion.OnPushToTalkReleased());
+
+        // System Audio mode: listens to whatever's playing through speakers (WASAPI
+        // loopback) instead of the mic, no screenshot -- react to a call/video.
+        _hotkey.AddHotkey(
+            settings.SystemAudioHotkeyModifiers, settings.SystemAudioHotkeyVirtualKey,
+            onPressed: () => _ = _companion.OnPushToTalkPressed(InteractionMode.SystemAudio),
             onReleased: () => _ = _companion.OnPushToTalkReleased());
 
         // Wire companion events to overlay
@@ -55,7 +63,7 @@ public partial class MainWindow : Window
             () => Dispatcher.Invoke(() => _overlay.PulseSpinner());
 
         // Wire companion events to the live reply panel
-        _companion.TranscriptReady += (transcript, includeScreen) => _reply.ShowTranscript(transcript, includeScreen);
+        _companion.TranscriptReady += (transcript, mode) => _reply.ShowTranscript(transcript, mode);
         _companion.ReplyChunkReceived += chunk => _reply.AppendChunk(chunk);
         _companion.ReplyDismissed += () => Dispatcher.Invoke(() => _reply.Hide());
 

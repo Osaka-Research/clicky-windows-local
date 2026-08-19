@@ -26,7 +26,7 @@ public class CompanionManager : IAsyncDisposable
 
     private CancellationTokenSource? _sessionCts;
     private readonly List<byte> _audioBuffer = new();
-    private bool _includeScreenThisTurn = true;
+    private InteractionMode _modeThisTurn = InteractionMode.Action;
 
     public event Action<AppState>? StateChanged;
     public event Action<double, double, string>? PointReceived;
@@ -36,9 +36,8 @@ public class CompanionManager : IAsyncDisposable
     /// <summary>Fires once the mic has stopped and transcription is about to start — triggers the spinner pulse.</summary>
     public event Action? TranscriptConfirmed;
     /// <summary>Fires as soon as Whisper produces a transcript — UI should show the reply panel with
-    /// this text, before Claude has even started replying. The bool is true for Action mode
-    /// (screen was shared), false for Answer mode (it wasn't).</summary>
-    public event Action<string, bool>? TranscriptReady;
+    /// this text, before Claude has even started replying.</summary>
+    public event Action<string, InteractionMode>? TranscriptReady;
     /// <summary>Fires with each new piece of reply text as it's safe to reveal (POINT tags never shown, even partially).</summary>
     public event Action<string>? ReplyChunkReceived;
     /// <summary>Fires when a reply in progress is interrupted by a new push-to-talk press — UI should hide the panel.</summary>
@@ -74,12 +73,7 @@ public class CompanionManager : IAsyncDisposable
 
     // ── Push-to-talk lifecycle ──────────────────────────────────────────────
 
-    /// <param name="includeScreen">
-    /// True = Action mode (default): a screenshot is captured and sent, Claude can point
-    /// at something on screen. False = Answer mode: no screenshot is captured or sent at
-    /// all, pure Q&amp;A -- for when you don't want the current screen shared.
-    /// </param>
-    public Task OnPushToTalkPressed(bool includeScreen = true)
+    public Task OnPushToTalkPressed(InteractionMode mode = InteractionMode.Action)
     {
         // Allow pressing hotkey while a reply is still streaming in — dismiss it and listen again
         if (State == AppState.Speaking)
@@ -96,14 +90,14 @@ public class CompanionManager : IAsyncDisposable
             return Task.CompletedTask;
         }
 
-        Logger.Log($"[Hotkey] Push-to-talk PRESSED (mode={(includeScreen ? "Action" : "Answer")})");
-        _includeScreenThisTurn = includeScreen;
+        Logger.Log($"[Hotkey] Push-to-talk PRESSED (mode={mode})");
+        _modeThisTurn = mode;
         State = AppState.Listening;
         _sessionCts = new CancellationTokenSource();
 
         lock (_audioBuffer) _audioBuffer.Clear();
         _audio.AudioChunkAvailable += OnAudioChunk;
-        _audio.Start();
+        _audio.Start(loopback: mode == InteractionMode.SystemAudio);
         Logger.Log("[Audio] WASAPI capture started");
 
         return Task.CompletedTask;
@@ -129,9 +123,9 @@ public class CompanionManager : IAsyncDisposable
         lock (_audioBuffer) clip = _audioBuffer.ToArray();
 
         // Capture screens while Whisper is (about to be) working — same as the cloud build.
-        // Skipped entirely in Answer mode: nothing is captured, nothing is sent.
+        // Skipped entirely outside Action mode: nothing is captured, nothing is sent.
         List<ScreenshotResult> screenshots = [];
-        if (_includeScreenThisTurn)
+        if (_modeThisTurn == InteractionMode.Action)
         {
             try
             {
@@ -145,7 +139,7 @@ public class CompanionManager : IAsyncDisposable
         }
         else
         {
-            Logger.Log("[Screen] Answer mode — no screenshot captured");
+            Logger.Log($"[Screen] {_modeThisTurn} mode — no screenshot captured");
         }
 
         TranscriptConfirmed?.Invoke();
@@ -166,8 +160,16 @@ public class CompanionManager : IAsyncDisposable
 
         if (!string.IsNullOrWhiteSpace(transcript))
         {
-            TranscriptReady?.Invoke(transcript, _includeScreenThisTurn);
-            await ProcessResponseAsync(transcript, screenshots);
+            TranscriptReady?.Invoke(transcript, _modeThisTurn);
+
+            // System Audio mode: the transcript is overheard content (a call, a video),
+            // not something the user said to Clicky directly -- frame it as such so Claude
+            // reacts to/explains it rather than treating it as a question addressed to it.
+            var messageForClaude = _modeThisTurn == InteractionMode.SystemAudio
+                ? $"[The following was just overheard playing on the computer's speakers -- not spoken by the user directly]: \"{transcript}\""
+                : transcript;
+
+            await ProcessResponseAsync(messageForClaude, screenshots);
         }
         else
         {

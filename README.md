@@ -53,25 +53,36 @@ fires if you press the hotkey again while a reply's still streaming in).
 3. First push-to-talk after a fresh install pauses while the Whisper model downloads
    (~1.5GB for the default `medium.en` size — cached under %LOCALAPPDATA% after that,
    survives rebuilds/reinstalls).
-4. Hold `Ctrl+Shift+Space` for **Action mode**, or `Ctrl+Shift+A` for **Answer mode**
-   (both default, see below), speak, release.
+4. Hold `Ctrl+Shift+Space` for **Action mode**, `Ctrl+Shift+A` for **Answer mode**, or
+   `Ctrl+Shift+R` for **System Audio mode** (all default, see below), speak (or, for
+   System Audio, just let whatever's playing keep playing), release.
 
-## Action mode vs. Answer mode
+## Action mode vs. Answer mode vs. System Audio mode
 
-Two independent push-to-talk hotkeys, both wired straight through `HotkeyService` (now
-supports registering more than one) to the same `CompanionManager`:
+Three independent push-to-talk hotkeys, all wired straight through `HotkeyService`
+(supports registering any number of them) to the same `CompanionManager`,
+distinguished by `InteractionMode` (`Models/AppState.cs`):
 
-| | Action mode — `Ctrl+Shift+Space` | Answer mode — `Ctrl+Shift+A` |
-|---|---|---|
-| Screenshot | Captured and sent with the question | **Never captured, never sent** |
-| Claude can point at something on screen | Yes | No — nothing to point at |
-| Use for | "What's this error say", "click the X" | "What's the capital of France", anything that doesn't need your screen |
+| | Action — `Ctrl+Shift+Space` | Answer — `Ctrl+Shift+A` | System Audio — `Ctrl+Shift+R` |
+|---|---|---|---|
+| Audio source | Microphone | Microphone | **Speakers** (WASAPI loopback — whatever's playing) |
+| Screenshot | Captured and sent | Never captured | Never captured |
+| Claude can point at something on screen | Yes | No | No |
+| Use for | "What's this error say", "click the X" | "What's the capital of France" | React to/explain a call, video, or anything else playing through the speakers |
+
+System Audio mode uses `WasapiLoopbackCapture` instead of `WasapiCapture` in
+`AudioCaptureService` — a subclass in NAudio, so the rest of the capture/conversion
+pipeline needed no changes. The transcript gets wrapped with a bit of framing before
+it's sent to Claude ("the following was just overheard... not spoken by the user
+directly") so it reacts to/explains the content instead of treating it as a question
+addressed to it directly.
 
 The reply panel's header shows which mode produced the answer ("Clicky — Action" in
-periwinkle, "Clicky — Answer" in green), so it's always clear afterward whether the
-screen was shared for that turn. Both hotkeys are configurable via `HotkeyModifiers`/
-`HotkeyVirtualKey` (Action) and `AnswerHotkeyModifiers`/`AnswerHotkeyVirtualKey`
-(Answer) in `settings.json`.
+periwinkle, "Clicky — Answer" in green, "Clicky — System Audio" in amber), so it's
+always clear afterward what was shared for that turn. All three hotkeys are
+configurable in `settings.json`: `HotkeyModifiers`/`HotkeyVirtualKey` (Action),
+`AnswerHotkeyModifiers`/`AnswerHotkeyVirtualKey` (Answer), and
+`SystemAudioHotkeyModifiers`/`SystemAudioHotkeyVirtualKey` (System Audio).
 
 ## Whisper model size
 

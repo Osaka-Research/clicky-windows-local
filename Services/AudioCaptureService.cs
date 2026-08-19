@@ -5,8 +5,10 @@ using NAudio.Wave;
 namespace ClickyWindows.Services;
 
 /// <summary>
-/// Captures microphone audio via WASAPI and converts to PCM16 at 16kHz mono —
-/// the format Whisper (via LocalWhisperService) expects.
+/// Captures audio via WASAPI and converts to PCM16 at 16kHz mono — the format Whisper
+/// (via LocalWhisperService) expects. Can capture either the microphone or system audio
+/// loopback (whatever's currently playing through speakers) — WasapiLoopbackCapture is a
+/// WasapiCapture subclass in NAudio, so the rest of the pipeline needs no changes either way.
 /// </summary>
 public class AudioCaptureService : IDisposable
 {
@@ -20,18 +22,18 @@ public class AudioCaptureService : IDisposable
     private bool _formatLogged;
     private int _chunksSent;
 
-    public void Start()
+    public void Start(bool loopback = false)
     {
         if (_running) return;
         _running = true;
         _chunksSent = 0;
         _formatLogged = false;
 
-        _capture = new WasapiCapture();
+        _capture = loopback ? new WasapiLoopbackCapture() : new WasapiCapture();
         _capture.DataAvailable += OnDataAvailable;
         _capture.StartRecording();
 
-        Logger.Log($"[Audio] WasapiCapture started (device format will be logged on first chunk)");
+        Logger.Log($"[Audio] {(loopback ? "WasapiLoopbackCapture (system audio)" : "WasapiCapture (microphone)")} started (device format will be logged on first chunk)");
     }
 
     public void Stop()

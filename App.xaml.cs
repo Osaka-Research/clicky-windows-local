@@ -62,12 +62,14 @@ public partial class App
 
         SetupTrayIcon();
 
-        Logger.Log($"Clicky ready. Action: {GetActionHotkeyDescription()}, Answer: {GetAnswerHotkeyDescription()}");
+        Logger.Log($"Clicky ready. Action: {GetActionHotkeyDescription()}, Answer: {GetAnswerHotkeyDescription()}, " +
+                   $"System Audio: {GetSystemAudioHotkeyDescription()}");
         Logger.Log($"Log file: {Logger.LogFilePath}");
         ShowBalloon(
             $"Clicky ready! Hold {GetActionHotkeyDescription()} to talk with your screen shared, " +
-            $"or {GetAnswerHotkeyDescription()} for a plain answer with nothing shared. First reply " +
-            "will pause a few seconds while the speech model loads.", ToolTipIcon.Info);
+            $"{GetAnswerHotkeyDescription()} for a plain answer with nothing shared, or " +
+            $"{GetSystemAudioHotkeyDescription()} to react to whatever's playing through your speakers. " +
+            "First reply will pause a few seconds while the speech model loads.", ToolTipIcon.Info);
     }
 
     private bool ValidateSettings()
@@ -105,16 +107,18 @@ public partial class App
 
         var actionDesc = GetActionHotkeyDescription();
         var answerDesc = GetAnswerHotkeyDescription();
+        var systemAudioDesc = GetSystemAudioHotkeyDescription();
         _trayIcon = new NotifyIcon
         {
             Icon = icon,
-            Text = $"Clicky (local) — {actionDesc}: action, {answerDesc}: answer",
+            Text = $"Clicky (local) — {actionDesc}: action, {answerDesc}: answer, {systemAudioDesc}: system audio",
             Visible = true,
         };
 
         var menu = new ContextMenuStrip();
         menu.Items.Add($"{actionDesc}  |  Action mode (screen shared)").Enabled = false;
         menu.Items.Add($"{answerDesc}  |  Answer mode (nothing shared)").Enabled = false;
+        menu.Items.Add($"{systemAudioDesc}  |  System Audio mode (listens to speakers, not mic)").Enabled = false;
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Settings...", null, (_, _) => OpenSettings());
         menu.Items.Add("View Log", null, (_, _) => OpenLog());
@@ -127,6 +131,7 @@ public partial class App
 
     private string GetActionHotkeyDescription() => DescribeHotkey(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
     private string GetAnswerHotkeyDescription() => DescribeHotkey(_settings.AnswerHotkeyModifiers, _settings.AnswerHotkeyVirtualKey);
+    private string GetSystemAudioHotkeyDescription() => DescribeHotkey(_settings.SystemAudioHotkeyModifiers, _settings.SystemAudioHotkeyVirtualKey);
 
     private static string DescribeHotkey(uint modifiers, uint virtualKey)
     {

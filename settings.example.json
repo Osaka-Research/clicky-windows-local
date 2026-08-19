@@ -7,5 +7,7 @@
   "HotkeyVirtualKey": 32,
   "AnswerHotkeyModifiers": 6,
   "AnswerHotkeyVirtualKey": 65,
+  "SystemAudioHotkeyModifiers": 6,
+  "SystemAudioHotkeyVirtualKey": 82,
   "ShowCursorOverlay": true
 }

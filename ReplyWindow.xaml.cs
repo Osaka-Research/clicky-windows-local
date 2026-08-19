@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using ClickyWindows.Models;
 using Screen = System.Windows.Forms.Screen;
 
 namespace ClickyWindows;
@@ -23,19 +24,23 @@ public partial class ReplyWindow : Window
     /// Opens the panel (clearing any previous reply) as soon as Whisper produces a
     /// transcript -- shown immediately, before Claude has even started replying, so a
     /// mis-transcription is visible right away instead of only after a confusing answer.
-    /// [includeScreen] labels the panel with which mode produced this turn -- Action
-    /// (screen was shared) or Answer (it wasn't).
+    /// [mode] labels the panel with which hotkey produced this turn.
     /// </summary>
-    public void ShowTranscript(string transcript, bool includeScreen)
+    public void ShowTranscript(string transcript, InteractionMode mode)
     {
         Dispatcher.Invoke(() =>
         {
             TranscriptText.Text = $"“{transcript}”";
             ReplyText.Text = "";
-            ModeLabel.Text = includeScreen ? "Clicky — Action" : "Clicky — Answer";
-            ModeLabel.Foreground = includeScreen
-                ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x7C, 0x8A, 0xFF))  // periwinkle, matches original accent
-                : new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x4C, 0xD9, 0x9C)); // green — no screen shared this turn
+            var (label, colorHex) = mode switch
+            {
+                InteractionMode.Action => ("Clicky — Action", "#7C8AFF"),       // periwinkle, matches original accent
+                InteractionMode.Answer => ("Clicky — Answer", "#4CD99C"),       // green — no screen shared this turn
+                InteractionMode.SystemAudio => ("Clicky — System Audio", "#FFB347"), // amber — listening to speakers, not the mic
+                _ => ("Clicky", "#7C8AFF"),
+            };
+            ModeLabel.Text = label;
+            ModeLabel.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorHex));
 
             // Show() before positioning: DPI detection needs a live PresentationSource,
             // which doesn't exist until the window has been shown at least once. Positioning

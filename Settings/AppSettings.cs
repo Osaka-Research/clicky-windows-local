@@ -29,6 +29,12 @@ public class AppSettings
     public uint AnswerHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
     public uint AnswerHotkeyVirtualKey { get; set; } = 0x41; // VK_A
 
+    // System Audio mode push-to-talk — default: Ctrl+Shift+R. Listens to whatever's
+    // currently playing through speakers (a call, a video) via WASAPI loopback instead
+    // of the microphone, transcribes that, and reacts to it. No screenshot either.
+    public uint SystemAudioHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
+    public uint SystemAudioHotkeyVirtualKey { get; set; } = 0x52; // VK_R
+
     // Overlay settings
     public bool ShowCursorOverlay { get; set; } = true;
 
