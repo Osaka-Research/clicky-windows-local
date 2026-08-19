@@ -28,6 +28,11 @@
          (NVIDIA) if the machine has a CUDA GPU, see README. -->
     <PackageReference Include="Whisper.net" Version="1.7.4" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.7.4" />
+
+    <!-- Offline text-to-speech via SAPI (Windows' built-in speech engine) — replaces
+         ElevenLabs. Uses whatever voice is installed/selected in Windows Settings, no
+         model download, no network call. -->
+    <PackageReference Include="System.Speech" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

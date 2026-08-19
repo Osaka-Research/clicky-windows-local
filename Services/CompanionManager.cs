@@ -6,7 +6,7 @@ namespace ClickyWindows.Services;
 
 /// <summary>
 /// Orchestrates the full voice interaction loop:
-///   hotkey press → buffer mic audio → local Whisper transcription → Claude → overlay + Notepad
+///   hotkey press → buffer mic audio → local Whisper transcription → Claude → overlay + spoken reply (SAPI)
 ///
 /// Differs from the cloud original in one structural way: AssemblyAI's realtime WebSocket
 /// gave us turn-detection (interim/final transcripts as you spoke) for free. Local Whisper
@@ -22,7 +22,7 @@ public class CompanionManager : IAsyncDisposable
     private readonly ScreenCaptureService _screen;
     private readonly ClaudeService _claude;
     private readonly LocalWhisperService _whisper;
-    private readonly NotepadTtsService _tts;
+    private readonly SapiTtsService _tts;
     private readonly ConversationHistory _history;
 
     private CancellationTokenSource? _sessionCts;
@@ -56,7 +56,7 @@ public class CompanionManager : IAsyncDisposable
         _screen = new ScreenCaptureService();
         _claude = new ClaudeService(settings, _history);
         _whisper = new LocalWhisperService(settings.WhisperModelSize);
-        _tts = new NotepadTtsService();
+        _tts = new SapiTtsService();
 
         _audio.PowerLevelChanged += level => AudioLevelChanged?.Invoke(level);
 
@@ -164,7 +164,7 @@ public class CompanionManager : IAsyncDisposable
         lock (_audioBuffer) _audioBuffer.AddRange(pcm16);
     }
 
-    // ── Claude + Notepad ────────────────────────────────────────────────────
+    // ── Claude + TTS ────────────────────────────────────────────────────────
 
     private async Task ProcessResponseAsync(string transcript, List<ScreenshotResult> screenshots)
     {
@@ -247,9 +247,9 @@ public class CompanionManager : IAsyncDisposable
         {
             try
             {
-                // State transitions to Speaking inside NotepadTtsService.PlaybackStarting.
+                // State transitions to Speaking inside SapiTtsService.PlaybackStarting.
                 await _tts.SpeakAsync(fullText, _sessionCts!.Token);
-                Logger.Log("[Notepad] Response window opened");
+                Logger.Log("[TTS] Playback complete");
             }
             catch (OperationCanceledException)
             {
@@ -257,7 +257,7 @@ public class CompanionManager : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                Logger.Error($"Notepad open failed: {ex.Message}");
+                Logger.Error($"TTS failed: {ex.Message}");
                 var preview = fullText.Length > 30 ? fullText[..30].TrimEnd() + "…" : fullText;
                 FeedbackReceived?.Invoke(preview);
             }
