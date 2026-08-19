@@ -17,7 +17,7 @@ public class AppSettings
 
     // Local Whisper model size: tiny | base | small | medium. Bigger = more accurate,
     // slower, more RAM. Downloaded once on first run and cached under whisper-models/.
-    public string WhisperModelSize { get; set; } = "base.en";
+    public string WhisperModelSize { get; set; } = "medium.en";
 
     // Action mode push-to-talk — default: Ctrl+Shift+Space. Sends a screenshot with the
     // question; Claude can point at (or, in clicky-android, tap) something on screen.

@@ -50,8 +50,9 @@ fires if you press the hotkey again while a reply's still streaming in).
 2. Run it. First launch (or whenever `AnthropicApiKey` is missing) opens a **Settings
    window** — enter your key, model, and optional base URL there, no JSON editing.
    Reachable any time after via the tray icon's **Settings...** item.
-3. First push-to-talk after a fresh install pauses a few seconds while the Whisper
-   model downloads (~140MB for the default `base.en` size, cached after that).
+3. First push-to-talk after a fresh install pauses while the Whisper model downloads
+   (~1.5GB for the default `medium.en` size — cached under %LOCALAPPDATA% after that,
+   survives rebuilds/reinstalls).
 4. Hold `Ctrl+Shift+Space` for **Action mode**, or `Ctrl+Shift+A` for **Answer mode**
    (both default, see below), speak, release.
 
@@ -77,9 +78,11 @@ screen was shared for that turn. Both hotkeys are configurable via `HotkeyModifi
 Set in the Settings window: `tiny` / `tiny.en` | `base` / `base.en` | `small` /
 `small.en` | `medium` / `medium.en`. The `.en` variants are English-only and more
 accurate than their multilingual counterpart at the same size (smaller vocabulary to
-disambiguate) — `base.en` is the default. Drop the `.en` suffix if you need other
-languages recognized; `LocalWhisperService` switches Whisper's language mode between
-fixed `"en"` and `"auto"` based on whichever you pick, no other setting needed.
+disambiguate) — `medium.en` is the default, since GPU acceleration (see below) makes
+the accuracy jump essentially free. Drop the `.en` suffix if you need other languages
+recognized; `LocalWhisperService` switches Whisper's language mode between fixed
+`"en"` and `"auto"` based on whichever you pick, no other setting needed. Drop to
+`small.en` or `base.en` if running CPU-only and the latency bothers you.
 
 Bigger size = more accurate, slower per-clip, more RAM. `tiny`/`tiny.en` if this is
 running on modest hardware and you want near-instant responses; `small`/`medium` (or
