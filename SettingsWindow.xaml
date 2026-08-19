@@ -21,12 +21,18 @@
         <TextBox x:Name="ProxyUrlBox" Padding="6" Margin="0,0,0,12"/>
 
         <TextBlock Text="Whisper model size" Foreground="#DDDDDD" Margin="0,0,0,4"/>
-        <ComboBox x:Name="WhisperSizeBox" Padding="6" Margin="0,0,0,20">
+        <ComboBox x:Name="WhisperSizeBox" Padding="6" Margin="0,0,0,4">
+            <ComboBoxItem Content="tiny.en"/>
             <ComboBoxItem Content="tiny"/>
+            <ComboBoxItem Content="base.en"/>
             <ComboBoxItem Content="base"/>
+            <ComboBoxItem Content="small.en"/>
             <ComboBoxItem Content="small"/>
+            <ComboBoxItem Content="medium.en"/>
             <ComboBoxItem Content="medium"/>
         </ComboBox>
+        <TextBlock Text="&quot;.en&quot; = English-only, more accurate than multilingual at the same size."
+                   Foreground="#888888" FontSize="11" Margin="0,0,0,20" TextWrapping="Wrap"/>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="CancelButton" Content="Cancel" Padding="14,6" Margin="0,0,8,0" Click="OnCancel"/>

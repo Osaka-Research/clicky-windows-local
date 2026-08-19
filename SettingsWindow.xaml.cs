@@ -25,7 +25,7 @@ public partial class SettingsWindow : Window
         ModelBox.Text = _settings.ClaudeModel;
         ProxyUrlBox.Text = _settings.ClaudeProxyUrl;
 
-        var sizeToSelect = string.IsNullOrWhiteSpace(_settings.WhisperModelSize) ? "base" : _settings.WhisperModelSize;
+        var sizeToSelect = string.IsNullOrWhiteSpace(_settings.WhisperModelSize) ? "base.en" : _settings.WhisperModelSize;
         foreach (ComboBoxItem item in WhisperSizeBox.Items)
         {
             if ((string)item.Content == sizeToSelect)
@@ -34,7 +34,9 @@ public partial class SettingsWindow : Window
                 break;
             }
         }
-        WhisperSizeBox.SelectedItem ??= WhisperSizeBox.Items[1]; // "base"
+        WhisperSizeBox.SelectedItem ??= WhisperSizeBox.Items
+            .Cast<ComboBoxItem>()
+            .FirstOrDefault(i => (string)i.Content == "base.en") ?? WhisperSizeBox.Items[0];
     }
 
     private void OnSave(object sender, RoutedEventArgs e)
@@ -50,7 +52,7 @@ public partial class SettingsWindow : Window
         _settings.AnthropicApiKey = key;
         _settings.ClaudeModel = string.IsNullOrWhiteSpace(ModelBox.Text) ? "claude-sonnet-4-6" : ModelBox.Text.Trim();
         _settings.ClaudeProxyUrl = ProxyUrlBox.Text.Trim();
-        _settings.WhisperModelSize = (WhisperSizeBox.SelectedItem as ComboBoxItem)?.Content as string ?? "base";
+        _settings.WhisperModelSize = (WhisperSizeBox.SelectedItem as ComboBoxItem)?.Content as string ?? "base.en";
         _settings.Save();
 
         Saved = true;

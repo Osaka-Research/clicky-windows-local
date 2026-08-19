@@ -2,7 +2,7 @@
   "AnthropicApiKey": "sk-ant-...",
   "ClaudeProxyUrl": "",
   "ClaudeModel": "claude-sonnet-4-6",
-  "WhisperModelSize": "base",
+  "WhisperModelSize": "base.en",
   "HotkeyModifiers": 6,
   "HotkeyVirtualKey": 32,
   "ShowCursorOverlay": true

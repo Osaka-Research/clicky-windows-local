@@ -9,31 +9,39 @@ namespace ClickyWindows.Services;
 /// Fully offline speech-to-text via whisper.cpp (Whisper.net bindings). Replaces
 /// AssemblyAIService's realtime cloud WebSocket — there's no streaming/turn-detection
 /// here, just: buffer the whole push-to-talk clip, transcribe it in one shot on release.
-/// Downloads a ggml model once on first run (~140MB for the default "base" size) and
+/// Downloads a ggml model once on first run (~140MB for the default "base.en" size) and
 /// caches it next to the exe.
 /// </summary>
 public class LocalWhisperService : IAsyncDisposable
 {
     private readonly string _modelPath;
     private readonly GgmlType _ggmlType;
+    private readonly bool _englishOnly;
     private WhisperFactory? _factory;
     private readonly SemaphoreSlim _loadLock = new(1, 1);
 
     public LocalWhisperService(string modelSize)
     {
         _ggmlType = ParseGgmlType(modelSize);
+        _englishOnly = modelSize.Trim().EndsWith(".en", StringComparison.OrdinalIgnoreCase);
         var dir = Path.Combine(AppContext.BaseDirectory, "whisper-models");
         Directory.CreateDirectory(dir);
         _modelPath = Path.Combine(dir, $"ggml-{modelSize.ToLowerInvariant()}.bin");
     }
 
-    private static GgmlType ParseGgmlType(string size) => size.ToLowerInvariant() switch
+    // English-only ("<size>.en") models are more accurate than the multilingual ones at
+    // the same size, at the cost of only understanding English speech.
+    private static GgmlType ParseGgmlType(string size) => size.Trim().ToLowerInvariant() switch
     {
         "tiny" => GgmlType.Tiny,
+        "tiny.en" => GgmlType.TinyEn,
         "base" => GgmlType.Base,
+        "base.en" => GgmlType.BaseEn,
         "small" => GgmlType.Small,
+        "small.en" => GgmlType.SmallEn,
         "medium" => GgmlType.Medium,
-        _ => GgmlType.Base,
+        "medium.en" => GgmlType.MediumEn,
+        _ => GgmlType.BaseEn,
     };
 
     /// <summary>Downloads the model (first run only) and loads it. Safe to call repeatedly.</summary>
@@ -77,7 +85,7 @@ public class LocalWhisperService : IAsyncDisposable
         if (_factory == null) return "";
 
         using var processor = _factory.CreateBuilder()
-            .WithLanguage("auto")
+            .WithLanguage(_englishOnly ? "en" : "auto")
             .Build();
 
         using var wavStream = ToWavStream(pcm16Mono16k);

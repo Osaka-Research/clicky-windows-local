@@ -17,7 +17,7 @@ public class AppSettings
 
     // Local Whisper model size: tiny | base | small | medium. Bigger = more accurate,
     // slower, more RAM. Downloaded once on first run and cached under whisper-models/.
-    public string WhisperModelSize { get; set; } = "base";
+    public string WhisperModelSize { get; set; } = "base.en";
 
     // Push-to-talk hotkey — default: Ctrl+Shift+Space
     public uint HotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT

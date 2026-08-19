@@ -47,15 +47,21 @@ streaming in).
    window** — enter your key, model, and optional base URL there, no JSON editing.
    Reachable any time after via the tray icon's **Settings...** item.
 3. First push-to-talk after a fresh install pauses a few seconds while the Whisper
-   model downloads (~140MB for the default `base` size, cached after that).
+   model downloads (~140MB for the default `base.en` size, cached after that).
 4. Hold `Ctrl+Shift+Space` (default, same as upstream), speak, release.
 
 ## Whisper model size
 
-Set in the Settings window: `tiny` | `base` | `small` | `medium`. Bigger = more
-accurate and multilingual-robust, slower per-clip, more RAM. `base` is the default and
-a reasonable balance on CPU. `tiny` if this is running on modest hardware and you want
-near-instant responses; `small`/`medium` if you have the CPU (or a GPU — see below) to
+Set in the Settings window: `tiny` / `tiny.en` | `base` / `base.en` | `small` /
+`small.en` | `medium` / `medium.en`. The `.en` variants are English-only and more
+accurate than their multilingual counterpart at the same size (smaller vocabulary to
+disambiguate) — `base.en` is the default. Drop the `.en` suffix if you need other
+languages recognized; `LocalWhisperService` switches Whisper's language mode between
+fixed `"en"` and `"auto"` based on whichever you pick, no other setting needed.
+
+Bigger size = more accurate, slower per-clip, more RAM. `tiny`/`tiny.en` if this is
+running on modest hardware and you want near-instant responses; `small`/`medium` (or
+their `.en` variants) if you have the CPU (or a GPU — see below) to
 spare and want fewer misheard commands.
 
 ## GPU acceleration (optional)
