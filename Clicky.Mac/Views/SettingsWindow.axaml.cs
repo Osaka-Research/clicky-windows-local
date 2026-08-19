@@ -16,6 +16,10 @@ public partial class SettingsWindow : Window
 
     public bool Saved { get; private set; }
 
+    // Parameterless overload only so Avalonia's XAML tooling (hot reload/previewer) can
+    // instantiate this type -- actual usage always goes through the constructor below.
+    public SettingsWindow() : this(new AppSettings()) { }
+
     public SettingsWindow(AppSettings settings)
     {
         InitializeComponent();
@@ -26,9 +30,9 @@ public partial class SettingsWindow : Window
         ProxyUrlBox.Text = settings.ClaudeProxyUrl;
         SystemAudioDeviceBox.Text = settings.SystemAudioInputDeviceName;
 
-        foreach (ComboBoxItem item in WhisperModelBox.Items)
+        foreach (var item in WhisperModelBox.Items)
         {
-            if ((string?)item.Content == settings.WhisperModelSize)
+            if (item is ComboBoxItem { Content: string content } && content == settings.WhisperModelSize)
             {
                 WhisperModelBox.SelectedItem = item;
                 break;
