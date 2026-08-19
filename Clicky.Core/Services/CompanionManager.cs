@@ -8,6 +8,11 @@ namespace ClickyWindows.Services;
 /// Orchestrates the full voice interaction loop:
 ///   hotkey press → buffer mic audio → local Whisper transcription → Claude → overlay + live reply panel
 ///
+/// Platform-agnostic: talks to audio/screen capture only through IAudioCaptureService /
+/// IScreenCaptureService, and marshals UI-affecting callbacks through the injected
+/// [uiDispatch] delegate (WPF's Dispatcher.Invoke on Windows, Avalonia's Dispatcher.UIThread
+/// on macOS) rather than any platform-specific UI type.
+///
 /// Differs from the cloud original in one structural way: AssemblyAI's realtime WebSocket
 /// gave us turn-detection (interim/final transcripts as you spoke) for free. Local Whisper
 /// has no such thing — it transcribes a finished clip in one shot. So instead of awaiting a
@@ -18,10 +23,11 @@ namespace ClickyWindows.Services;
 public class CompanionManager : IAsyncDisposable
 {
     private readonly AppSettings _settings;
-    private readonly AudioCaptureService _audio;
-    private readonly ScreenCaptureService _screen;
+    private readonly IAudioCaptureService _audio;
+    private readonly IScreenCaptureService _screen;
     private readonly ClaudeService _claude;
     private readonly LocalWhisperService _whisper;
+    private readonly Action<Action> _uiDispatch;
 
     private CancellationTokenSource? _sessionCts;
     private readonly List<byte> _audioBuffer = new();
@@ -54,11 +60,20 @@ public class CompanionManager : IAsyncDisposable
         }
     }
 
-    public CompanionManager(AppSettings settings)
+    /// <param name="uiDispatch">
+    /// Runs an action on the UI thread -- e.g. `a => Dispatcher.UIThread.Invoke(a)` on
+    /// Avalonia, `a => Application.Current.Dispatcher.Invoke(a)` on WPF.
+    /// </param>
+    public CompanionManager(
+        AppSettings settings,
+        IAudioCaptureService audio,
+        IScreenCaptureService screen,
+        Action<Action> uiDispatch)
     {
         _settings = settings;
-        _audio = new AudioCaptureService();
-        _screen = new ScreenCaptureService();
+        _audio = audio;
+        _screen = screen;
+        _uiDispatch = uiDispatch;
         _claude = new ClaudeService(settings);
         _whisper = new LocalWhisperService(settings.WhisperModelSize);
 
@@ -106,7 +121,7 @@ public class CompanionManager : IAsyncDisposable
         lock (_audioBuffer) _audioBuffer.Clear();
         _audio.AudioChunkAvailable += OnAudioChunk;
         _audio.Start(loopback: mode == InteractionMode.SystemAudio);
-        Logger.Log("[Audio] WASAPI capture started");
+        Logger.Log("[Audio] capture started");
 
         return Task.CompletedTask;
     }
@@ -127,8 +142,8 @@ public class CompanionManager : IAsyncDisposable
         """;
 
     /// <summary>
-    /// Ctrl+Shift+Q: fires immediately on key press, no hold/release and no mic involved
-    /// at all -- captures a single screenshot and asks Claude to answer everything
+    /// Screenshot Q&amp;A hotkey: fires immediately on key press, no hold/release and no mic
+    /// involved at all -- captures a single screenshot and asks Claude to answer everything
     /// visible in it.
     /// </summary>
     public async Task OnScreenshotQaTriggered()
@@ -245,12 +260,12 @@ public class CompanionManager : IAsyncDisposable
         lock (_audioBuffer) _audioBuffer.AddRange(pcm16);
     }
 
-    // NAudio's WasapiCapture.StopRecording()/Dispose() are plain blocking calls with no
-    // cancellation support -- if the native WASAPI stop call itself ever wedges (driver
-    // quirk, device disconnect mid-capture), there's no way to un-stick it. Racing it
-    // against a timeout at least keeps the app responsive instead of hanging the whole
-    // turn (and every turn after it) forever; the abandoned capture object leaks, but
-    // the next Start() creates a fresh one regardless, so the app self-recovers.
+    // Native capture Stop() calls (WASAPI on Windows, CoreAudio-backed on macOS) are
+    // blocking with no cancellation support -- if the native stop call itself ever wedges
+    // (driver quirk, device disconnect mid-capture), there's no way to un-stick it. Racing
+    // it against a timeout at least keeps the app responsive instead of hanging the whole
+    // turn (and every turn after it) forever; the abandoned capture object leaks, but the
+    // next Start() creates a fresh one regardless, so the app self-recovers.
     private static readonly TimeSpan AudioStopTimeout = TimeSpan.FromSeconds(5);
 
     private async Task StopAudioWithTimeoutAsync()
@@ -264,7 +279,7 @@ public class CompanionManager : IAsyncDisposable
         else
         {
             Logger.Error($"[Audio] Stop() didn't return within {AudioStopTimeout.TotalSeconds:F0}s " +
-                         "(likely a stuck native WASAPI call) — abandoning it and continuing. " +
+                         "(likely a stuck native audio call) — abandoning it and continuing. " +
                          "Next capture will use a fresh device handle.");
         }
     }
@@ -337,7 +352,7 @@ public class CompanionManager : IAsyncDisposable
             try
             {
                 var primaryShot = screenshots[0];
-                var (cuW, cuH) = CoordinateHelper.DetectComputerUseResolution(
+                var (cuW, cuH) = ComputerUseResolution.Detect(
                     primaryShot.Bounds.Width, primaryShot.Bounds.Height);
 
                 var resized = _screen.CaptureResized(primaryShot.Bounds, cuW, cuH);
@@ -351,7 +366,7 @@ public class CompanionManager : IAsyncDisposable
                     if (physX >= 0)
                     {
                         Logger.Log($"[CU] Precise POINT: ({physX},{physY}) label=\"{detectedPoint.Label}\"");
-                        WpfApp.Current.Dispatcher.Invoke(() =>
+                        _uiDispatch(() =>
                             PointReceived?.Invoke(physX, physY, detectedPoint.Label));
                         cuSucceeded = true;
                     }
@@ -369,7 +384,7 @@ public class CompanionManager : IAsyncDisposable
             if (!cuSucceeded)
             {
                 Logger.Log($"[CU] Falling back to rough coords ({detectedPoint.X},{detectedPoint.Y})");
-                WpfApp.Current.Dispatcher.Invoke(() =>
+                _uiDispatch(() =>
                     PointReceived?.Invoke(detectedPoint.X, detectedPoint.Y, detectedPoint.Label));
             }
         }

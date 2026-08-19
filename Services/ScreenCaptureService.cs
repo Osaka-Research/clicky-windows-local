@@ -5,19 +5,12 @@ using ClickyWindows.Helpers;
 
 namespace ClickyWindows.Services;
 
-public record ScreenshotResult(
-    byte[] JpegBytes,      // raw JPEG data
-    string Base64,         // base64-encoded JPEG for Claude API
-    string Label,          // human-readable label (e.g., "Primary display — cursor here at (1234, 567)")
-    Rectangle Bounds       // physical pixel bounds of the captured screen
-);
-
 /// <summary>
 /// Captures JPEG screenshots of all connected monitors using GDI (System.Drawing).
 /// Reliable, no extra packages required, produces JPEG at quality 80 (matching macOS Clicky).
 /// The monitor where the cursor is located is returned first.
 /// </summary>
-public class ScreenCaptureService
+public class ScreenCaptureService : IScreenCaptureService
 {
     private const long JpegQuality = 80L;
 

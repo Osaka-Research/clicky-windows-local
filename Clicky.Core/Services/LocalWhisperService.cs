@@ -6,11 +6,11 @@ using Whisper.net.Ggml;
 namespace ClickyWindows.Services;
 
 /// <summary>
-/// Fully offline speech-to-text via whisper.cpp (Whisper.net bindings). Replaces
-/// AssemblyAIService's realtime cloud WebSocket — there's no streaming/turn-detection
-/// here, just: buffer the whole push-to-talk clip, transcribe it in one shot on release.
-/// Downloads a ggml model once on first run (~140MB for the default "base.en" size) and
-/// caches it under %LOCALAPPDATA% (survives rebuilds/reinstalls, unlike caching next to the exe).
+/// Fully offline speech-to-text via whisper.cpp (Whisper.net bindings). There's no
+/// streaming/turn-detection here, just: buffer the whole push-to-talk clip, transcribe
+/// it in one shot on release. Downloads a ggml model once on first run (~140MB for the
+/// default "base.en" size) and caches it under the app-data folder (survives
+/// rebuilds/reinstalls, unlike caching next to the executable).
 /// </summary>
 public class LocalWhisperService : IAsyncDisposable
 {
@@ -25,12 +25,12 @@ public class LocalWhisperService : IAsyncDisposable
         _ggmlType = ParseGgmlType(modelSize);
         _englishOnly = modelSize.Trim().EndsWith(".en", StringComparison.OrdinalIgnoreCase);
 
-        // %LOCALAPPDATA%, not next to the exe: the build output folder gets wiped/replaced
-        // on every rebuild or reinstall, which would silently force a ~140MB re-download
-        // (and a multi-second stall mid-conversation) every single time.
+        // The app-data folder, not next to the executable: the build output folder gets
+        // wiped/replaced on every rebuild or reinstall, which would silently force a
+        // ~140MB re-download (and a multi-second stall mid-conversation) every time.
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "ClickyWindowsLocal", "whisper-models");
+            AppPaths.AppFolderName, "whisper-models");
         Directory.CreateDirectory(dir);
         _modelPath = Path.Combine(dir, $"ggml-{modelSize.ToLowerInvariant()}.bin");
     }
@@ -114,7 +114,7 @@ public class LocalWhisperService : IAsyncDisposable
     private static readonly TimeSpan TranscribeTimeout = TimeSpan.FromSeconds(45);
 
     /// <summary>
-    /// Transcribes a buffer of PCM16 16kHz mono samples (as produced by AudioCaptureService).
+    /// Transcribes a buffer of PCM16 16kHz mono samples (as produced by IAudioCaptureService).
     /// Returns "" for silence/near-empty buffers, or if it times out.
     /// </summary>
     public async Task<string> TranscribeAsync(byte[] pcm16Mono16k, CancellationToken ct = default)

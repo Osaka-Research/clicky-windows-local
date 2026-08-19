@@ -49,7 +49,11 @@ public partial class App
             return;
         }
 
-        _companion = new CompanionManager(_settings);
+        _companion = new CompanionManager(
+            _settings,
+            new AudioCaptureService(),
+            new ScreenCaptureService(),
+            uiDispatch: a => Dispatcher.Invoke(a));
 
         _overlay = new OverlayWindow();
         _overlay.Show();

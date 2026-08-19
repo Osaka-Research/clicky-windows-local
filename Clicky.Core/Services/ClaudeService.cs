@@ -128,7 +128,7 @@ public partial class ClaudeService
     /// </summary>
     public async IAsyncEnumerable<string> StreamResponseAsync(
         string transcript,
-        List<Services.ScreenshotResult> screenshots,
+        List<ScreenshotResult> screenshots,
         InteractionMode mode,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
@@ -281,7 +281,7 @@ public partial class ClaudeService
         int screenWidth, int screenHeight,
         CancellationToken ct = default)
     {
-        var (cuW, cuH) = CoordinateHelper.DetectComputerUseResolution(screenWidth, screenHeight);
+        var (cuW, cuH) = ComputerUseResolution.Detect(screenWidth, screenHeight);
 
         var body = new JsonObject
         {

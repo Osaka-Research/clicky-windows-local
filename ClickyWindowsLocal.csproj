@@ -23,13 +23,15 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
 
-    <!-- Offline speech-to-text (whisper.cpp bindings) — replaces AssemblyAI.
-         Both CPU and CUDA runtimes referenced together: Whisper.net picks CUDA
-         automatically when an NVIDIA GPU + driver are present, falling back to CPU
-         otherwise — no code change needed either way. -->
-    <PackageReference Include="Whisper.net" Version="1.7.4" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.7.4" />
+    <!-- Whisper.net + Whisper.net.Runtime (CPU) come in transitively via Clicky.Core.
+         This adds the CUDA native runtime on top: Whisper.net picks it automatically
+         when an NVIDIA GPU + driver are present, falling back to CPU otherwise — no
+         code change needed either way. Windows-only; macOS has no CUDA. -->
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.7.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Clicky.Core\Clicky.Core.csproj" />
   </ItemGroup>
 
 </Project>

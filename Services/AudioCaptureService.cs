@@ -10,7 +10,7 @@ namespace ClickyWindows.Services;
 /// loopback (whatever's currently playing through speakers) — WasapiLoopbackCapture is a
 /// WasapiCapture subclass in NAudio, so the rest of the pipeline needs no changes either way.
 /// </summary>
-public class AudioCaptureService : IDisposable
+public class AudioCaptureService : IAudioCaptureService
 {
     private WasapiCapture? _capture;
     private readonly WaveFormat _targetFormat = new WaveFormat(16000, 16, 1);
