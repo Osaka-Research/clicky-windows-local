@@ -68,21 +68,23 @@ public partial class App
 
     private bool ValidateSettings()
     {
-        if (string.IsNullOrWhiteSpace(_settings.AnthropicApiKey) &&
-            string.IsNullOrWhiteSpace(_settings.ClaudeProxyUrl))
+        if (!string.IsNullOrWhiteSpace(_settings.AnthropicApiKey))
+            return true;
+
+        // First run (or key was cleared) — open the settings window instead of pointing
+        // at a JSON file. Blocking: nothing starts until a key is entered or the user quits.
+        var dialog = new SettingsWindow(_settings);
+        var result = dialog.ShowDialog();
+        return result == true && dialog.Saved;
+    }
+
+    private void OpenSettings()
+    {
+        var dialog = new SettingsWindow(_settings);
+        if (dialog.ShowDialog() == true && dialog.Saved)
         {
-            _settings.Save();
-            var path = Logger.LogFilePath.Replace("clicky.log", "settings.json");
-            System.Windows.MessageBox.Show(
-                $"Please add your API key to:\n{path}\n\n" +
-                "Required field:\n• AnthropicApiKey\n\n" +
-                "(Speech-to-text and \"speech\" output are fully local in this build — " +
-                "no ElevenLabs or AssemblyAI keys needed.)",
-                "Clicky — Setup Required",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-            return false;
+            ShowBalloon("Settings saved.", ToolTipIcon.Info);
         }
-        return true;
     }
 
     private void SetupTrayIcon()
@@ -108,8 +110,8 @@ public partial class App
         var menu = new ContextMenuStrip();
         menu.Items.Add($"Clicky (local)  |  Hold {hotkeyDesc} to talk").Enabled = false;
         menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add("Settings...", null, (_, _) => OpenSettings());
         menu.Items.Add("View Log", null, (_, _) => OpenLog());
-        menu.Items.Add("Open Settings", null, (_, _) => OpenSettingsFolder());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Quit Clicky", null, (_, _) => QuitApp());
 
@@ -137,13 +139,6 @@ public partial class App
     {
         try { System.Diagnostics.Process.Start("notepad.exe", Logger.LogFilePath); }
         catch { }
-    }
-
-    private void OpenSettingsFolder()
-    {
-        var dir = Path.GetDirectoryName(Logger.LogFilePath)!;
-        Directory.CreateDirectory(dir);
-        System.Diagnostics.Process.Start("explorer.exe", dir);
     }
 
     private async void QuitApp()

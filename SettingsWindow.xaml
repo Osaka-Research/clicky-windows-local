@@ -1,0 +1,36 @@
+<Window x:Class="ClickyWindows.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Clicky Settings"
+        Width="440" SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#1E1E1E">
+    <StackPanel Margin="20">
+        <TextBlock Text="Clicky Settings" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,4"/>
+        <TextBlock Text="Speech-to-text and reply display are fully local -- only Claude needs a key."
+                   Foreground="#AAAAAA" TextWrapping="Wrap" Margin="0,0,0,16"/>
+
+        <TextBlock Text="Anthropic API key" Foreground="#DDDDDD" Margin="0,0,0,4"/>
+        <PasswordBox x:Name="ApiKeyBox" Padding="6" Margin="0,0,0,12"/>
+
+        <TextBlock Text="Claude model" Foreground="#DDDDDD" Margin="0,0,0,4"/>
+        <TextBox x:Name="ModelBox" Padding="6" Margin="0,0,0,12"/>
+
+        <TextBlock Text="Base URL (optional -- leave blank for api.anthropic.com)" Foreground="#DDDDDD" Margin="0,0,0,4"/>
+        <TextBox x:Name="ProxyUrlBox" Padding="6" Margin="0,0,0,12"/>
+
+        <TextBlock Text="Whisper model size" Foreground="#DDDDDD" Margin="0,0,0,4"/>
+        <ComboBox x:Name="WhisperSizeBox" Padding="6" Margin="0,0,0,20">
+            <ComboBoxItem Content="tiny"/>
+            <ComboBoxItem Content="base"/>
+            <ComboBoxItem Content="small"/>
+            <ComboBoxItem Content="medium"/>
+        </ComboBox>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="CancelButton" Content="Cancel" Padding="14,6" Margin="0,0,8,0" Click="OnCancel"/>
+            <Button x:Name="SaveButton" Content="Save" Padding="14,6" Click="OnSave" IsDefault="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
