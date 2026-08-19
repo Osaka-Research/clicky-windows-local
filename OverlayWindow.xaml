@@ -1,0 +1,131 @@
+<Window x:Class="ClickyWindows.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ClickyOverlay"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        IsHitTestVisible="False"
+        ShowInTaskbar="False"
+        Topmost="True"
+        ResizeMode="NoResize"
+        WindowStartupLocation="Manual"
+        Left="-9999" Top="-9999"
+        Width="200" Height="200">
+
+    <Canvas x:Name="OverlayCanvas">
+
+        <!-- Main cursor dot — trails the mouse with spring physics, flies to targets.
+             ScaleTransform allows a grow-to-1.3x pulse during flight. -->
+        <Grid x:Name="CursorFollower" Width="32" Height="32"
+              Canvas.Left="0" Canvas.Top="0"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform x:Name="DotScale" ScaleX="1" ScaleY="1"/>
+            </Grid.RenderTransform>
+            <!-- Outer glow ring -->
+            <Ellipse Width="32" Height="32"
+                     Stroke="#403380FF" StrokeThickness="2"
+                     Fill="Transparent">
+                <Ellipse.Effect>
+                    <BlurEffect Radius="4"/>
+                </Ellipse.Effect>
+            </Ellipse>
+            <!-- Inner solid dot -->
+            <Ellipse Width="12" Height="12"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Fill="#CC3380FF">
+                <Ellipse.Effect>
+                    <DropShadowEffect Color="#3380FF" BlurRadius="8" ShadowDepth="0" Opacity="0.9"/>
+                </Ellipse.Effect>
+            </Ellipse>
+        </Grid>
+
+        <!-- Audio waveform — 5 bars that react to mic level during Listening state.
+             Bars use VerticalAlignment=Bottom so they grow upward from a common baseline. -->
+        <StackPanel x:Name="WaveformBars"
+                    Orientation="Horizontal"
+                    Canvas.Left="0" Canvas.Top="0"
+                    Visibility="Collapsed"
+                    Height="20">
+            <StackPanel.Effect>
+                <DropShadowEffect Color="#3380FF" BlurRadius="6" ShadowDepth="0" Opacity="0.6"/>
+            </StackPanel.Effect>
+            <Rectangle x:Name="Bar0" Width="2" Height="5" Fill="#FF3380FF" Margin="0,0,2,0" VerticalAlignment="Bottom" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar1" Width="2" Height="5" Fill="#FF3380FF" Margin="0,0,2,0" VerticalAlignment="Bottom" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar2" Width="2" Height="5" Fill="#FF3380FF" Margin="0,0,2,0" VerticalAlignment="Bottom" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar3" Width="2" Height="5" Fill="#FF3380FF" Margin="0,0,2,0" VerticalAlignment="Bottom" RadiusX="1" RadiusY="1"/>
+            <Rectangle x:Name="Bar4" Width="2" Height="5" Fill="#FF3380FF" VerticalAlignment="Bottom" RadiusX="1" RadiusY="1"/>
+        </StackPanel>
+
+        <!-- Processing spinner — rotating dashed ring shown while waiting for Claude's response.
+             SpinnerScale allows a throb pulse when transcript is confirmed. -->
+        <Grid x:Name="ProcessingSpinner"
+              Width="22" Height="22"
+              Canvas.Left="0" Canvas.Top="0"
+              Visibility="Collapsed"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform x:Name="SpinnerScale" ScaleX="1" ScaleY="1"/>
+            </Grid.RenderTransform>
+            <Ellipse x:Name="SpinnerRing" Width="18" Height="18"
+                     StrokeThickness="2.5"
+                     StrokeDashArray="3.5 1.5"
+                     Fill="Transparent"
+                     RenderTransformOrigin="0.5,0.5">
+                <Ellipse.Stroke>
+                    <SolidColorBrush x:Name="SpinnerStrokeBrush" Color="#3380FF"/>
+                </Ellipse.Stroke>
+                <Ellipse.Effect>
+                    <DropShadowEffect Color="#3380FF" BlurRadius="6" ShadowDepth="0" Opacity="0.6"/>
+                </Ellipse.Effect>
+                <Ellipse.RenderTransform>
+                    <RotateTransform x:Name="SpinnerRotate" Angle="0"/>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+        </Grid>
+
+        <!-- Target pointer — pulse ring + resting dot at the detected element position -->
+        <Grid x:Name="TargetPointer" Width="48" Height="48"
+              Canvas.Left="0" Canvas.Top="0"
+              Visibility="Collapsed">
+            <!-- Pulsing outer ring -->
+            <Ellipse x:Name="PulseRing" Width="48" Height="48"
+                     Stroke="#FF3380FF" StrokeThickness="2"
+                     Fill="Transparent" Opacity="0">
+                <Ellipse.RenderTransform>
+                    <ScaleTransform x:Name="PulseScale" CenterX="24" CenterY="24"/>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+            <!-- Center dot — the cursor rests here while pointing -->
+            <Ellipse Width="16" Height="16"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Fill="#FF3380FF">
+                <Ellipse.Effect>
+                    <DropShadowEffect Color="#3380FF" BlurRadius="12" ShadowDepth="0" Opacity="1"/>
+                </Ellipse.Effect>
+            </Ellipse>
+        </Grid>
+
+        <!-- Utterance label — fades in on arrival, holds 3 s, fades out before return flight -->
+        <Border x:Name="TargetLabel"
+                Canvas.Left="0" Canvas.Top="0"
+                Visibility="Collapsed"
+                Opacity="0"
+                Background="#CC101211"
+                CornerRadius="6"
+                Padding="8,4"
+                BorderBrush="#443380FF" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect Color="#3380FF" BlurRadius="8" ShadowDepth="0" Opacity="0.4"/>
+            </Border.Effect>
+            <TextBlock x:Name="TargetLabelText"
+                       Foreground="#ECEEED"
+                       FontSize="12"
+                       FontFamily="Segoe UI"
+                       MaxWidth="200"
+                       TextWrapping="Wrap"/>
+        </Border>
+
+    </Canvas>
+</Window>

@@ -1,0 +1,16 @@
+<Window x:Class="ClickyWindows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ClickyWindows"
+        Width="0" Height="0"
+        ShowInTaskbar="False"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Visibility="Hidden"
+        WindowStartupLocation="Manual"
+        Left="-9999" Top="-9999"
+        ResizeMode="NoResize">
+    <!-- Invisible message pump window. WM_HOTKEY and other Win32 messages
+         are delivered here and routed to HotkeyService. -->
+</Window>
