@@ -118,14 +118,14 @@ public class CompanionManager : IAsyncDisposable
 
     private const string ScreenshotQaPrompt = """
         First figure out what's actually on screen and what the user is likely doing with it --
-        a browser showing a webpage, a video player (e.g. YouTube) mid-playback, a code editor,
-        a PDF, a chat app, etc. Then focus on the content that context implies, not just
-        whatever text happens to be biggest: if it's a webpage, the questions are almost always
-        in the page content itself, not the browser chrome/tabs/bookmarks bar. If it's a video
-        paused or playing, focus on what's happening in the video frame and any caption/subtitle
-        text, not the sidebar of suggested videos or comments below it, unless those are clearly
-        what's being asked about. Once you've placed it, answer every question visible in that
-        relevant area, one by one.
+        a video call with an interviewer (question may be spoken and only partly visible as
+        a caption, or written in a chat panel), a coding platform or take-home problem, a
+        webpage, a PDF, a job description or resume, etc. Then focus on the content that
+        context implies, not just whatever text happens to be biggest: on a call, it's the
+        chat/question panel or shared doc, not the participant tiles or call controls; on a
+        webpage, it's the page content, not the browser chrome/tabs/bookmarks bar. If there's
+        more than one question or part visible, answer each one in turn, but as one
+        continuous spoken answer -- not a labeled list.
         """;
 
     /// <summary>
