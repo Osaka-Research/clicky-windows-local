@@ -55,20 +55,22 @@ fires if you press the hotkey again while a reply's still streaming in).
    survives rebuilds/reinstalls).
 4. Hold `Ctrl+Shift+Space` for **Action mode**, `Ctrl+Shift+A` for **Answer mode**, or
    `Ctrl+Shift+R` for **System Audio mode** (all default, see below), speak (or, for
-   System Audio, just let whatever's playing keep playing), release.
+   System Audio, just let whatever's playing keep playing), release. Or just tap
+   `Ctrl+Shift+Q` for **Screenshot Q&A** — no hold needed, no mic involved at all.
 
-## Action mode vs. Answer mode vs. System Audio mode
+## Four modes
 
-Three independent push-to-talk hotkeys, all wired straight through `HotkeyService`
-(supports registering any number of them) to the same `CompanionManager`,
-distinguished by `InteractionMode` (`Models/AppState.cs`):
+Four independent hotkeys, all wired straight through `HotkeyService` (supports
+registering any number of them) to the same `CompanionManager`, distinguished by
+`InteractionMode` (`Models/AppState.cs`):
 
-| | Action — `Ctrl+Shift+Space` | Answer — `Ctrl+Shift+A` | System Audio — `Ctrl+Shift+R` |
-|---|---|---|---|
-| Audio source | Microphone | Microphone | **Speakers** (WASAPI loopback — whatever's playing) |
-| Screenshot | Captured and sent | Never captured | Never captured |
-| Claude can point at something on screen | Yes | No | No |
-| Use for | "What's this error say", "click the X" | "What's the capital of France" | React to/explain a call, video, or anything else playing through the speakers |
+| | Action — `Ctrl+Shift+Space` | Answer — `Ctrl+Shift+A` | System Audio — `Ctrl+Shift+R` | Screenshot Q&A — `Ctrl+Shift+Q` |
+|---|---|---|---|---|
+| Trigger | Hold, speak, release | Hold, speak, release | Hold, release | **Tap** — fires on press, no hold |
+| Audio source | Microphone | Microphone | **Speakers** (WASAPI loopback) | None |
+| Screenshot | Captured and sent | Never captured | Never captured | Captured and sent |
+| Claude can point at something on screen | Yes | No | No | Yes (but the point is to just answer) |
+| Use for | "What's this error say", "click the X" | "What's the capital of France" | React to/explain a call, video, anything playing through speakers | Instantly answer every question visible right now |
 
 System Audio mode uses `WasapiLoopbackCapture` instead of `WasapiCapture` in
 `AudioCaptureService` — a subclass in NAudio, so the rest of the capture/conversion
@@ -77,12 +79,17 @@ it's sent to Claude ("the following was just overheard... not spoken by the user
 directly") so it reacts to/explains the content instead of treating it as a question
 addressed to it directly.
 
+Screenshot Q&A skips audio/Whisper entirely — `CompanionManager.OnScreenshotQaTriggered()`
+fires straight off the hotkey's key-down event, captures one screenshot, and sends a
+fixed prompt ("Answer every question visible on the screen, one by one.") alongside it.
+
 The reply panel's header shows which mode produced the answer ("Clicky — Action" in
-periwinkle, "Clicky — Answer" in green, "Clicky — System Audio" in amber), so it's
-always clear afterward what was shared for that turn. All three hotkeys are
-configurable in `settings.json`: `HotkeyModifiers`/`HotkeyVirtualKey` (Action),
-`AnswerHotkeyModifiers`/`AnswerHotkeyVirtualKey` (Answer), and
-`SystemAudioHotkeyModifiers`/`SystemAudioHotkeyVirtualKey` (System Audio).
+periwinkle, "Clicky — Answer" in green, "Clicky — System Audio" in amber, "Clicky —
+Screen Q&A" in violet), so it's always clear afterward what was shared for that turn.
+All four hotkeys are configurable in `settings.json`: `HotkeyModifiers`/
+`HotkeyVirtualKey` (Action), `AnswerHotkeyModifiers`/`AnswerHotkeyVirtualKey` (Answer),
+`SystemAudioHotkeyModifiers`/`SystemAudioHotkeyVirtualKey` (System Audio), and
+`ScreenshotQaHotkeyModifiers`/`ScreenshotQaHotkeyVirtualKey` (Screenshot Q&A).
 
 ## Whisper model size
 

@@ -20,4 +20,7 @@ public enum InteractionMode
     Answer,
     /// <summary>Ctrl+Shift+R (default): system audio (WASAPI loopback) input instead of the mic, no screenshot -- react to whatever's playing.</summary>
     SystemAudio,
+    /// <summary>Ctrl+Shift+Q (default): no mic at all -- a single tap captures one screenshot and asks
+    /// Claude to answer every question visible in it. Fires on key press, doesn't need a hold/release.</summary>
+    ScreenshotQA,
 }

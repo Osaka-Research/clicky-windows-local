@@ -37,6 +37,7 @@ public partial class ReplyWindow : Window
                 InteractionMode.Action => ("Clicky — Action", "#7C8AFF"),       // periwinkle, matches original accent
                 InteractionMode.Answer => ("Clicky — Answer", "#4CD99C"),       // green — no screen shared this turn
                 InteractionMode.SystemAudio => ("Clicky — System Audio", "#FFB347"), // amber — listening to speakers, not the mic
+                InteractionMode.ScreenshotQA => ("Clicky — Screen Q&A", "#C77DFF"),  // violet — one-shot, answers everything visible
                 _ => ("Clicky", "#7C8AFF"),
             };
             ModeLabel.Text = label;

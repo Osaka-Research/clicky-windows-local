@@ -73,9 +73,13 @@ public class CompanionManager : IAsyncDisposable
 
     // ── Push-to-talk lifecycle ──────────────────────────────────────────────
 
-    public Task OnPushToTalkPressed(InteractionMode mode = InteractionMode.Action)
+    /// <summary>
+    /// Allows starting a new session while a reply is still streaming in (dismisses it),
+    /// but refuses if a session is already actively Listening/Processing. Returns whether
+    /// the caller may proceed.
+    /// </summary>
+    private bool TryBeginNewSession(string logContext)
     {
-        // Allow pressing hotkey while a reply is still streaming in — dismiss it and listen again
         if (State == AppState.Speaking)
         {
             Logger.Log("[Hotkey] Interrupting — dismissing in-progress reply");
@@ -86,9 +90,15 @@ public class CompanionManager : IAsyncDisposable
 
         if (State != AppState.Idle)
         {
-            Logger.Log($"[Hotkey] Pressed but state={State} — ignoring");
-            return Task.CompletedTask;
+            Logger.Log($"[Hotkey] {logContext} but state={State} — ignoring");
+            return false;
         }
+        return true;
+    }
+
+    public Task OnPushToTalkPressed(InteractionMode mode = InteractionMode.Action)
+    {
+        if (!TryBeginNewSession("Push-to-talk pressed")) return Task.CompletedTask;
 
         Logger.Log($"[Hotkey] Push-to-talk PRESSED (mode={mode})");
         _modeThisTurn = mode;
@@ -101,6 +111,39 @@ public class CompanionManager : IAsyncDisposable
         Logger.Log("[Audio] WASAPI capture started");
 
         return Task.CompletedTask;
+    }
+
+    private const string ScreenshotQaPrompt = "Answer every question visible on the screen, one by one.";
+
+    /// <summary>
+    /// Ctrl+Shift+Q: fires immediately on key press, no hold/release and no mic involved
+    /// at all -- captures a single screenshot and asks Claude to answer everything
+    /// visible in it.
+    /// </summary>
+    public async Task OnScreenshotQaTriggered()
+    {
+        if (!TryBeginNewSession("Screenshot Q&A pressed")) return;
+
+        Logger.Log("[Hotkey] Screenshot Q&A PRESSED");
+        _modeThisTurn = InteractionMode.ScreenshotQA;
+        State = AppState.Processing;
+        _sessionCts = new CancellationTokenSource();
+
+        List<ScreenshotResult> screenshots;
+        try
+        {
+            screenshots = _screen.CaptureAll();
+            Logger.Log($"[Screen] Captured {screenshots.Count} display(s)");
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"[Screen] Capture failed: {ex.Message}");
+            screenshots = [];
+        }
+
+        TranscriptConfirmed?.Invoke();
+        TranscriptReady?.Invoke(ScreenshotQaPrompt, _modeThisTurn);
+        await ProcessResponseAsync(ScreenshotQaPrompt, screenshots);
     }
 
     public async Task OnPushToTalkReleased()

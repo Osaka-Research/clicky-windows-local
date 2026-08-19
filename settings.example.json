@@ -9,5 +9,7 @@
   "AnswerHotkeyVirtualKey": 65,
   "SystemAudioHotkeyModifiers": 6,
   "SystemAudioHotkeyVirtualKey": 82,
+  "ScreenshotQaHotkeyModifiers": 6,
+  "ScreenshotQaHotkeyVirtualKey": 81,
   "ShowCursorOverlay": true
 }

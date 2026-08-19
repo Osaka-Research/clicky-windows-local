@@ -63,12 +63,13 @@ public partial class App
         SetupTrayIcon();
 
         Logger.Log($"Clicky ready. Action: {GetActionHotkeyDescription()}, Answer: {GetAnswerHotkeyDescription()}, " +
-                   $"System Audio: {GetSystemAudioHotkeyDescription()}");
+                   $"System Audio: {GetSystemAudioHotkeyDescription()}, Screenshot Q&A: {GetScreenshotQaHotkeyDescription()}");
         Logger.Log($"Log file: {Logger.LogFilePath}");
         ShowBalloon(
             $"Clicky ready! Hold {GetActionHotkeyDescription()} to talk with your screen shared, " +
-            $"{GetAnswerHotkeyDescription()} for a plain answer with nothing shared, or " +
-            $"{GetSystemAudioHotkeyDescription()} to react to whatever's playing through your speakers. " +
+            $"{GetAnswerHotkeyDescription()} for a plain answer with nothing shared, " +
+            $"{GetSystemAudioHotkeyDescription()} to react to whatever's playing through your speakers, or tap " +
+            $"{GetScreenshotQaHotkeyDescription()} to answer every question on screen right now. " +
             "First reply will pause a few seconds while the speech model loads.", ToolTipIcon.Info);
     }
 
@@ -108,10 +109,11 @@ public partial class App
         var actionDesc = GetActionHotkeyDescription();
         var answerDesc = GetAnswerHotkeyDescription();
         var systemAudioDesc = GetSystemAudioHotkeyDescription();
+        var screenshotQaDesc = GetScreenshotQaHotkeyDescription();
         _trayIcon = new NotifyIcon
         {
             Icon = icon,
-            Text = $"Clicky (local) — {actionDesc}: action, {answerDesc}: answer, {systemAudioDesc}: system audio",
+            Text = $"Clicky (local) — {actionDesc}: action, {answerDesc}: answer, {systemAudioDesc}: sys audio, {screenshotQaDesc}: screen Q&A",
             Visible = true,
         };
 
@@ -119,6 +121,7 @@ public partial class App
         menu.Items.Add($"{actionDesc}  |  Action mode (screen shared)").Enabled = false;
         menu.Items.Add($"{answerDesc}  |  Answer mode (nothing shared)").Enabled = false;
         menu.Items.Add($"{systemAudioDesc}  |  System Audio mode (listens to speakers, not mic)").Enabled = false;
+        menu.Items.Add($"{screenshotQaDesc}  |  Screenshot Q&A (tap -- answers everything on screen)").Enabled = false;
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Settings...", null, (_, _) => OpenSettings());
         menu.Items.Add("View Log", null, (_, _) => OpenLog());
@@ -132,6 +135,7 @@ public partial class App
     private string GetActionHotkeyDescription() => DescribeHotkey(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
     private string GetAnswerHotkeyDescription() => DescribeHotkey(_settings.AnswerHotkeyModifiers, _settings.AnswerHotkeyVirtualKey);
     private string GetSystemAudioHotkeyDescription() => DescribeHotkey(_settings.SystemAudioHotkeyModifiers, _settings.SystemAudioHotkeyVirtualKey);
+    private string GetScreenshotQaHotkeyDescription() => DescribeHotkey(_settings.ScreenshotQaHotkeyModifiers, _settings.ScreenshotQaHotkeyVirtualKey);
 
     private static string DescribeHotkey(uint modifiers, uint virtualKey)
     {

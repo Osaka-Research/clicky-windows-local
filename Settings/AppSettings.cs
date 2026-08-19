@@ -35,6 +35,11 @@ public class AppSettings
     public uint SystemAudioHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
     public uint SystemAudioHotkeyVirtualKey { get; set; } = 0x52; // VK_R
 
+    // Screenshot Q&A — default: Ctrl+Shift+Q. A single tap (no hold, no mic) captures one
+    // screenshot and asks Claude to answer every question visible in it.
+    public uint ScreenshotQaHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
+    public uint ScreenshotQaHotkeyVirtualKey { get; set; } = 0x51; // VK_Q
+
     // Overlay settings
     public bool ShowCursorOverlay { get; set; } = true;
 

@@ -46,6 +46,13 @@ public partial class MainWindow : Window
             onPressed: () => _ = _companion.OnPushToTalkPressed(InteractionMode.SystemAudio),
             onReleased: () => _ = _companion.OnPushToTalkReleased());
 
+        // Screenshot Q&A: fires on press alone, no hold/release, no mic -- one screenshot,
+        // answer everything visible in it.
+        _hotkey.AddHotkey(
+            settings.ScreenshotQaHotkeyModifiers, settings.ScreenshotQaHotkeyVirtualKey,
+            onPressed: () => _ = _companion.OnScreenshotQaTriggered(),
+            onReleased: () => { });
+
         // Wire companion events to overlay
         _companion.StateChanged += state =>
             Dispatcher.Invoke(() => _overlay.SetState(state));
