@@ -61,22 +61,49 @@ public class LocalWhisperService : IAsyncDisposable
             if (_factory != null) return;
 
             if (!File.Exists(_modelPath))
-            {
-                Logger.Log($"[Whisper] Downloading model to {_modelPath} (first run only, one-time)...");
-                using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(_ggmlType);
-                using var fileWriter = File.OpenWrite(_modelPath);
-                await modelStream.CopyToAsync(fileWriter);
-                Logger.Log("[Whisper] Model downloaded.");
-            }
+                await DownloadModelAsync();
 
-            Logger.Log($"[Whisper] Loading model from {_modelPath}...");
-            _factory = WhisperFactory.FromPath(_modelPath);
-            Logger.Log("[Whisper] Model loaded.");
+            try
+            {
+                Logger.Log($"[Whisper] Loading model from {_modelPath}...");
+                _factory = WhisperFactory.FromPath(_modelPath);
+                Logger.Log("[Whisper] Model loaded.");
+            }
+            catch (Exception ex)
+            {
+                // File exists but won't load -- almost always a truncated/corrupt download
+                // (e.g. the app got killed mid-download). Delete it and try once more; a
+                // fresh full download should fix it.
+                Logger.Error($"[Whisper] Model at {_modelPath} failed to load ({ex.Message}) — " +
+                             "assuming it's corrupt/truncated, deleting and re-downloading.");
+                File.Delete(_modelPath);
+                await DownloadModelAsync();
+                _factory = WhisperFactory.FromPath(_modelPath);
+                Logger.Log("[Whisper] Model loaded after re-download.");
+            }
         }
         finally
         {
             _loadLock.Release();
         }
+    }
+
+    /// <summary>
+    /// Downloads to a temp file first, then moves it into place only once the full copy
+    /// succeeds -- so a download interrupted partway (app killed, network drop) never
+    /// leaves a file at [_modelPath] that a later run would wrongly trust as complete.
+    /// </summary>
+    private async Task DownloadModelAsync()
+    {
+        var tempPath = _modelPath + ".download";
+        Logger.Log($"[Whisper] Downloading model to {_modelPath} (one-time, can take a while for larger sizes)...");
+        using (var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(_ggmlType))
+        using (var fileWriter = File.Create(tempPath))
+        {
+            await modelStream.CopyToAsync(fileWriter);
+        }
+        File.Move(tempPath, _modelPath, overwrite: true);
+        Logger.Log("[Whisper] Model downloaded.");
     }
 
     // Hard ceiling on a single transcription — protects against a stuck native call
