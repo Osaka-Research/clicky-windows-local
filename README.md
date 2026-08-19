@@ -8,7 +8,7 @@ the three cloud dependencies:
 |---|---|---|
 | Vision + reasoning + pointing | Claude (cloud) | Claude (cloud) — unavoidable, this is the one API doing the actual "seeing" |
 | Speech-to-text | AssemblyAI (cloud WebSocket) | **local Whisper** (whisper.cpp via Whisper.net) — fully offline |
-| Text-to-speech | ElevenLabs (cloud) | **SAPI** (`System.Speech.Synthesis`) — Windows' built-in speech engine, real spoken voice, fully offline |
+| Text-to-speech | ElevenLabs (cloud) | **live reply panel** — a small always-on-top window, bottom-right corner, that streams Claude's answer as text in real time |
 
 Only one API key required now: **Anthropic** (or any Anthropic-API-compatible
 endpoint — the in-app Settings window has a base-URL field for that).
@@ -24,15 +24,20 @@ would otherwise need to guess at. Net effect: simpler code (no `TaskCompletionSo
 race, no 5s/8s finalize-retry dance), at the cost of not seeing a live transcript while
 still talking.
 
-## Why SAPI for TTS
+## Why a live reply panel instead of TTS
 
-`System.Speech.Synthesis` is built into Windows/.NET — no model download, no network
-call, no extra native binaries, and it's a *real* spoken voice (not a text popup).
-`SapiTtsService` picks a more natural-sounding installed voice (Zira/Aria/Jenny) over
-the oldest defaults if one's available, otherwise falls back to whatever Windows'
-Speech settings currently have selected. Same shape as `ElevenLabsService`
-(`SpeakAsync`/`StopPlayback`/`PlaybackStarting`), so `CompanionManager` needed no other
-changes to swap it in.
+`ReplyWindow` is a small always-on-top, borderless panel anchored to the bottom-right
+corner that streams Claude's answer in as it's generated — no waiting for the full
+response, no audio playback pipeline at all. Text you read instead of a voice you wait
+through; closable any time via its own `×` button.
+
+`CompanionManager` streams safely: it tracks the last unclosed `[` in the raw response
+and holds back everything from there on, so a `[POINT:...]` tag never flashes on
+screen even partially while it's still arriving — only revealed (stripped, i.e. never
+shown at all) once it's either completed or turns out not to be a tag. Three new events
+drive it: `ReplyStarted` (clear + show the panel), `ReplyChunkReceived` (append text),
+`ReplyDismissed` (hide it — fires if you press the hotkey again while a reply's still
+streaming in).
 
 ## Setup
 
@@ -64,7 +69,6 @@ faster transcription especially at `small`/`medium` model sizes.
 
 Everything else: the floating overlay (pointing dot, spinner, waveform bars), Claude's
 system prompt and `[POINT:x,y:label]` protocol, the Computer Use two-phase precise
-pointing, the hotkey service, screen capture, system tray. Only `AssemblyAIService` and
-`ElevenLabsService` were swapped out, for `LocalWhisperService` and `SapiTtsService`
-respectively — `CompanionManager` is the one file with structural changes, everything
-downstream of "Claude gave us a transcript" is identical to upstream.
+pointing, the hotkey service, screen capture, system tray. `AssemblyAIService` and
+`ElevenLabsService` were swapped out for `LocalWhisperService` and `ReplyWindow` +
+streaming logic in `CompanionManager` respectively.

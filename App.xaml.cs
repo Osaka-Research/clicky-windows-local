@@ -15,6 +15,7 @@ public partial class App
     private NotifyIcon? _trayIcon;
     private CompanionManager? _companion;
     private OverlayWindow? _overlay;
+    private ReplyWindow? _reply;
     private MainWindow? _mainWindow;
     private AppSettings _settings = new();
 
@@ -53,7 +54,9 @@ public partial class App
         _overlay = new OverlayWindow();
         _overlay.Show();
 
-        _mainWindow = new MainWindow(_settings, _companion, _overlay);
+        _reply = new ReplyWindow();
+
+        _mainWindow = new MainWindow(_settings, _companion, _overlay, _reply);
         MainWindow = _mainWindow;
         _mainWindow.Show();
 

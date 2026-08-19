@@ -6,7 +6,7 @@ namespace ClickyWindows.Services;
 
 /// <summary>
 /// Orchestrates the full voice interaction loop:
-///   hotkey press → buffer mic audio → local Whisper transcription → Claude → overlay + spoken reply (SAPI)
+///   hotkey press → buffer mic audio → local Whisper transcription → Claude → overlay + live reply panel
 ///
 /// Differs from the cloud original in one structural way: AssemblyAI's realtime WebSocket
 /// gave us turn-detection (interim/final transcripts as you spoke) for free. Local Whisper
@@ -22,7 +22,6 @@ public class CompanionManager : IAsyncDisposable
     private readonly ScreenCaptureService _screen;
     private readonly ClaudeService _claude;
     private readonly LocalWhisperService _whisper;
-    private readonly SapiTtsService _tts;
     private readonly ConversationHistory _history;
 
     private CancellationTokenSource? _sessionCts;
@@ -35,6 +34,12 @@ public class CompanionManager : IAsyncDisposable
     public event Action<string>? FeedbackReceived;
     /// <summary>Fires once the mic has stopped and transcription is about to start — triggers the spinner pulse.</summary>
     public event Action? TranscriptConfirmed;
+    /// <summary>Fires right as Claude's reply starts streaming in — UI should clear/show the reply panel.</summary>
+    public event Action? ReplyStarted;
+    /// <summary>Fires with each new piece of reply text as it's safe to reveal (POINT tags never shown, even partially).</summary>
+    public event Action<string>? ReplyChunkReceived;
+    /// <summary>Fires when a reply in progress is interrupted by a new push-to-talk press — UI should hide the panel.</summary>
+    public event Action? ReplyDismissed;
 
     private AppState _state = AppState.Idle;
     private AppState State
@@ -56,27 +61,24 @@ public class CompanionManager : IAsyncDisposable
         _screen = new ScreenCaptureService();
         _claude = new ClaudeService(settings, _history);
         _whisper = new LocalWhisperService(settings.WhisperModelSize);
-        _tts = new SapiTtsService();
 
         _audio.PowerLevelChanged += level => AudioLevelChanged?.Invoke(level);
 
         // Kick off the (potentially slow, first-run-only) model download/load in the
         // background at startup so the first push-to-talk isn't the one paying for it.
         _ = _whisper.EnsureModelLoadedAsync();
-
-        _tts.PlaybackStarting += () => State = AppState.Speaking;
     }
 
     // ── Push-to-talk lifecycle ──────────────────────────────────────────────
 
     public Task OnPushToTalkPressed()
     {
-        // Allow pressing hotkey while the response window is up — close it and listen again
+        // Allow pressing hotkey while a reply is still streaming in — dismiss it and listen again
         if (State == AppState.Speaking)
         {
-            Logger.Log("[Hotkey] Interrupting — closing response window");
-            _tts.StopPlayback();
+            Logger.Log("[Hotkey] Interrupting — dismissing in-progress reply");
             _sessionCts?.Cancel();
+            ReplyDismissed?.Invoke();
             _state = AppState.Idle; // set directly to avoid double-firing state events
         }
 
@@ -164,7 +166,7 @@ public class CompanionManager : IAsyncDisposable
         lock (_audioBuffer) _audioBuffer.AddRange(pcm16);
     }
 
-    // ── Claude + TTS ────────────────────────────────────────────────────────
+    // ── Claude + live reply panel ───────────────────────────────────────────
 
     private async Task ProcessResponseAsync(string transcript, List<ScreenshotResult> screenshots)
     {
@@ -172,6 +174,8 @@ public class CompanionManager : IAsyncDisposable
 
         var responseBuilder = new System.Text.StringBuilder();
         PointTarget? detectedPoint = null;
+        int revealedLength = 0;
+        bool started = false;
 
         try
         {
@@ -185,6 +189,28 @@ public class CompanionManager : IAsyncDisposable
                     if (pts.Count > 0)
                         detectedPoint = pts[0];
                 }
+
+                if (!started)
+                {
+                    started = true;
+                    State = AppState.Speaking;
+                    ReplyStarted?.Invoke();
+                }
+
+                // Only reveal text we're sure isn't the start of an in-progress [POINT:...] tag —
+                // find the last '[' in the raw stream and hold back everything from there on
+                // until it's either closed (tag complete, gets stripped normally) or turns out
+                // not to be a tag at all. Keeps partial tags from ever flashing on screen.
+                var raw = responseBuilder.ToString();
+                var lastOpen = raw.LastIndexOf('[');
+                var safeRaw = (lastOpen == -1 || raw.IndexOf(']', lastOpen) != -1) ? raw : raw[..lastOpen];
+                var safeText = ClaudeService.StripPointTags(safeRaw);
+
+                if (safeText.Length > revealedLength)
+                {
+                    ReplyChunkReceived?.Invoke(safeText[revealedLength..]);
+                    revealedLength = safeText.Length;
+                }
             }
         }
         catch (Exception ex)
@@ -194,6 +220,12 @@ public class CompanionManager : IAsyncDisposable
             State = AppState.Idle;
             return;
         }
+
+        // Reveal whatever's left now that the stream is finished (final tags, if any, are complete).
+        var fullText = ClaudeService.StripPointTags(responseBuilder.ToString());
+        if (fullText.Length > revealedLength)
+            ReplyChunkReceived?.Invoke(fullText[revealedLength..]);
+        Logger.Log($"[Claude] Response text: \"{fullText}\"");
 
         if (detectedPoint != null && screenshots.Count > 0)
         {
@@ -240,40 +272,14 @@ public class CompanionManager : IAsyncDisposable
             }
         }
 
-        var fullText = ClaudeService.StripPointTags(responseBuilder.ToString());
-        Logger.Log($"[Claude] Response text: \"{fullText}\"");
-
-        if (!string.IsNullOrWhiteSpace(fullText))
-        {
-            try
-            {
-                // State transitions to Speaking inside SapiTtsService.PlaybackStarting.
-                await _tts.SpeakAsync(fullText, _sessionCts!.Token);
-                Logger.Log("[TTS] Playback complete");
-            }
-            catch (OperationCanceledException)
-            {
-                // Interrupted by user pressing hotkey again — normal flow
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"TTS failed: {ex.Message}");
-                var preview = fullText.Length > 30 ? fullText[..30].TrimEnd() + "…" : fullText;
-                FeedbackReceived?.Invoke(preview);
-            }
-        }
-
         State = AppState.Idle;
     }
-
-    public void StopSpeaking() => _tts.StopPlayback();
 
     public async ValueTask DisposeAsync()
     {
         _sessionCts?.Cancel();
         _audio.AudioChunkAvailable -= OnAudioChunk;
         _audio.Dispose();
-        _tts.Dispose();
         await _whisper.DisposeAsync();
         _sessionCts?.Dispose();
     }
