@@ -42,7 +42,7 @@ public partial class SettingsWindow : Window
         var key = ApiKeyBox.Password.Trim();
         if (string.IsNullOrWhiteSpace(key))
         {
-            MessageBox.Show(this, "Anthropic API key is required.", "Clicky Settings",
+            System.Windows.MessageBox.Show(this, "Anthropic API key is required.", "Clicky Settings",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
