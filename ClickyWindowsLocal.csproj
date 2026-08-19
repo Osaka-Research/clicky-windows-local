@@ -34,4 +34,13 @@
     <ProjectReference Include="Clicky.Core\Clicky.Core.csproj" />
   </ItemGroup>
 
+  <!-- Clicky.Core is a subfolder of this project's own directory (nested in the same git
+       repo), so the default **/*.cs glob above would otherwise compile its source files
+       directly into this assembly too, on top of the ProjectReference above -- same types
+       compiled twice, ambiguous-type errors. Exclude it explicitly. -->
+  <ItemGroup>
+    <Compile Remove="Clicky.Core\**\*.cs" />
+    <Compile Remove="Clicky.Mac\**\*.cs" />
+  </ItemGroup>
+
 </Project>
