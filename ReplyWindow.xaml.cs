@@ -11,7 +11,7 @@ namespace ClickyWindows;
 /// </summary>
 public partial class ReplyWindow : Window
 {
-    private const double Margin = 24;
+    private const double PanelMargin = 24;
 
     public ReplyWindow()
     {
@@ -45,8 +45,8 @@ public partial class ReplyWindow : Window
     {
         var area = Screen.PrimaryScreen!.WorkingArea;
         var dpi = VisualTreeHelper2.GetDpiScale(this);
-        Left = area.Right / dpi - Width - Margin;
-        Top = area.Bottom / dpi - ActualHeight - Margin;
+        Left = area.Right / dpi - Width - PanelMargin;
+        Top = area.Bottom / dpi - ActualHeight - PanelMargin;
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Hide();
