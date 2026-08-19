@@ -62,11 +62,12 @@ public partial class App
 
         SetupTrayIcon();
 
-        Logger.Log($"Clicky ready. Hotkey: {GetHotkeyDescription()}");
+        Logger.Log($"Clicky ready. Action: {GetActionHotkeyDescription()}, Answer: {GetAnswerHotkeyDescription()}");
         Logger.Log($"Log file: {Logger.LogFilePath}");
         ShowBalloon(
-            $"Clicky ready! Hold {GetHotkeyDescription()} to talk. First reply will pause a few " +
-            "seconds while the speech model loads.", ToolTipIcon.Info);
+            $"Clicky ready! Hold {GetActionHotkeyDescription()} to talk with your screen shared, " +
+            $"or {GetAnswerHotkeyDescription()} for a plain answer with nothing shared. First reply " +
+            "will pause a few seconds while the speech model loads.", ToolTipIcon.Info);
     }
 
     private bool ValidateSettings()
@@ -102,16 +103,18 @@ public partial class App
         }
         var icon = System.Drawing.Icon.FromHandle(bitmap.GetHicon());
 
-        var hotkeyDesc = GetHotkeyDescription();
+        var actionDesc = GetActionHotkeyDescription();
+        var answerDesc = GetAnswerHotkeyDescription();
         _trayIcon = new NotifyIcon
         {
             Icon = icon,
-            Text = $"Clicky (local) — Hold {hotkeyDesc} to talk",
+            Text = $"Clicky (local) — {actionDesc}: action, {answerDesc}: answer",
             Visible = true,
         };
 
         var menu = new ContextMenuStrip();
-        menu.Items.Add($"Clicky (local)  |  Hold {hotkeyDesc} to talk").Enabled = false;
+        menu.Items.Add($"{actionDesc}  |  Action mode (screen shared)").Enabled = false;
+        menu.Items.Add($"{answerDesc}  |  Answer mode (nothing shared)").Enabled = false;
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Settings...", null, (_, _) => OpenSettings());
         menu.Items.Add("View Log", null, (_, _) => OpenLog());
@@ -122,14 +125,22 @@ public partial class App
         _trayIcon.DoubleClick += (_, _) => OpenLog();
     }
 
-    private string GetHotkeyDescription()
+    private string GetActionHotkeyDescription() => DescribeHotkey(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
+    private string GetAnswerHotkeyDescription() => DescribeHotkey(_settings.AnswerHotkeyModifiers, _settings.AnswerHotkeyVirtualKey);
+
+    private static string DescribeHotkey(uint modifiers, uint virtualKey)
     {
         var parts = new List<string>();
-        if ((_settings.HotkeyModifiers & 0x0004) != 0) parts.Add("Shift");
-        if ((_settings.HotkeyModifiers & 0x0002) != 0) parts.Add("Ctrl");
-        if ((_settings.HotkeyModifiers & 0x0001) != 0) parts.Add("Alt");
-        if ((_settings.HotkeyModifiers & 0x0008) != 0) parts.Add("Win");
-        parts.Add(_settings.HotkeyVirtualKey == 0x20 ? "Space" : $"Key(0x{_settings.HotkeyVirtualKey:X})");
+        if ((modifiers & 0x0004) != 0) parts.Add("Shift");
+        if ((modifiers & 0x0002) != 0) parts.Add("Ctrl");
+        if ((modifiers & 0x0001) != 0) parts.Add("Alt");
+        if ((modifiers & 0x0008) != 0) parts.Add("Win");
+        parts.Add(virtualKey switch
+        {
+            0x20 => "Space",
+            >= 0x41 and <= 0x5A => ((char)virtualKey).ToString(), // 'A'-'Z'
+            _ => $"Key(0x{virtualKey:X})",
+        });
         return string.Join("+", parts);
     }
 

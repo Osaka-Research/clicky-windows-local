@@ -6,31 +6,48 @@ using ClickyWindows.Helpers;
 namespace ClickyWindows.Services;
 
 /// <summary>
-/// Registers a global push-to-talk hotkey using Win32 RegisterHotKey.
+/// Registers one or more global push-to-talk hotkeys using Win32 RegisterHotKey.
 /// Non-intercepting: the key event still reaches all other applications.
-/// Fires PushToTalkPressed / PushToTalkReleased events.
+/// Each registered hotkey fires its own Pressed/Released callbacks independently,
+/// so e.g. Action mode (Ctrl+Shift+Space) and Answer mode (Ctrl+Shift+A) can coexist.
 /// </summary>
 public class HotkeyService : IDisposable
 {
-    private const int HotkeyId = 9001;
+    private class Binding
+    {
+        public required int Id;
+        public required uint Modifiers;
+        public required uint VirtualKey;
+        public required Action OnPressed;
+        public required Action OnReleased;
+        public bool IsPressed;
+    }
 
-    private readonly uint _modifiers;
-    private readonly uint _virtualKey;
+    private const int FirstHotkeyId = 9001;
+
+    private readonly List<Binding> _bindings = new();
     private IntPtr _hwnd;
     private HwndSource? _hwndSource;
-    private bool _isPressed;
 
-    public event Action? PushToTalkPressed;
-    public event Action? PushToTalkReleased;
-
-    public HotkeyService(uint modifiers, uint virtualKey)
+    /// <summary>
+    /// Queues a hotkey to register on the next Register(window) call. modifiers/virtualKey
+    /// use the same Win32 MOD_*/VK_* values as AppSettings' HotkeyModifiers/HotkeyVirtualKey.
+    /// </summary>
+    public void AddHotkey(uint modifiers, uint virtualKey, Action onPressed, Action onReleased)
     {
-        _modifiers = modifiers | Win32.MOD_NOREPEAT; // suppress key-repeat while held
-        _virtualKey = virtualKey;
+        _bindings.Add(new Binding
+        {
+            Id = FirstHotkeyId + _bindings.Count,
+            Modifiers = modifiers | Win32.MOD_NOREPEAT, // suppress key-repeat while held
+            VirtualKey = virtualKey,
+            OnPressed = onPressed,
+            OnReleased = onReleased,
+        });
     }
 
     /// <summary>
-    /// Must be called after the window's HWND is available (after SourceInitialized).
+    /// Must be called after the window's HWND is available (after SourceInitialized),
+    /// and after all AddHotkey calls.
     /// </summary>
     public void Register(Window window)
     {
@@ -40,31 +57,33 @@ public class HotkeyService : IDisposable
         _hwndSource = HwndSource.FromHwnd(_hwnd);
         _hwndSource?.AddHook(WndProc);
 
-        bool ok = Win32.RegisterHotKey(_hwnd, HotkeyId, _modifiers, _virtualKey);
-        if (!ok)
+        foreach (var b in _bindings)
         {
-            int err = Marshal.GetLastWin32Error();
-            throw new InvalidOperationException($"RegisterHotKey failed (error {err}). Try a different hotkey combination.");
+            bool ok = Win32.RegisterHotKey(_hwnd, b.Id, b.Modifiers, b.VirtualKey);
+            if (!ok)
+            {
+                int err = Marshal.GetLastWin32Error();
+                throw new InvalidOperationException($"RegisterHotKey failed (error {err}). Try a different hotkey combination.");
+            }
         }
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (msg == Win32.WM_HOTKEY && wParam.ToInt32() == HotkeyId)
+        if (msg == Win32.WM_HOTKEY)
         {
-            // WM_HOTKEY fires on key down only (with MOD_NOREPEAT, no repeats).
-            // We simulate push-to-talk: pressed on WM_HOTKEY, released when key-up
-            // is detected via a separate low-level approach.
-            // Simpler: toggle on each WM_HOTKEY (MOD_NOREPEAT makes this once per press).
-            if (!_isPressed)
+            var id = wParam.ToInt32();
+            var binding = _bindings.FirstOrDefault(b => b.Id == id);
+            if (binding != null && !binding.IsPressed)
             {
-                _isPressed = true;
-                PushToTalkPressed?.Invoke();
-
-                // Start listening for key-up via a background task
-                StartKeyUpWatcher();
+                // WM_HOTKEY fires on key down only (with MOD_NOREPEAT, no repeats).
+                // We simulate push-to-talk: pressed on WM_HOTKEY, released when key-up
+                // is detected via polling GetAsyncKeyState.
+                binding.IsPressed = true;
+                binding.OnPressed();
+                StartKeyUpWatcher(binding);
+                handled = true;
             }
-            handled = true;
         }
         return IntPtr.Zero;
     }
@@ -73,21 +92,19 @@ public class HotkeyService : IDisposable
     /// RegisterHotKey only fires on key-down. We poll for key-up using GetAsyncKeyState.
     /// This is lightweight (runs only while push-to-talk is active).
     /// </summary>
-    private void StartKeyUpWatcher()
+    private void StartKeyUpWatcher(Binding binding)
     {
         Task.Run(async () =>
         {
-            // Extract primary key from virtual key code
-            while (_isPressed)
+            while (binding.IsPressed)
             {
                 await Task.Delay(16); // ~60fps polling
-                // GetAsyncKeyState returns high bit set if key is down
-                short state = GetAsyncKeyState((int)_virtualKey);
+                short state = GetAsyncKeyState((int)binding.VirtualKey);
                 bool keyDown = (state & 0x8000) != 0;
                 if (!keyDown)
                 {
-                    _isPressed = false;
-                    WpfApp.Current.Dispatcher.Invoke(() => PushToTalkReleased?.Invoke());
+                    binding.IsPressed = false;
+                    WpfApp.Current.Dispatcher.Invoke(binding.OnReleased);
                     break;
                 }
             }
@@ -100,7 +117,10 @@ public class HotkeyService : IDisposable
     public void Dispose()
     {
         if (_hwnd != IntPtr.Zero)
-            Win32.UnregisterHotKey(_hwnd, HotkeyId);
+        {
+            foreach (var b in _bindings)
+                Win32.UnregisterHotKey(_hwnd, b.Id);
+        }
         _hwndSource?.RemoveHook(WndProc);
         _hwndSource = null;
     }

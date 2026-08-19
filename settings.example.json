@@ -5,5 +5,7 @@
   "WhisperModelSize": "base.en",
   "HotkeyModifiers": 6,
   "HotkeyVirtualKey": 32,
+  "AnswerHotkeyModifiers": 6,
+  "AnswerHotkeyVirtualKey": 65,
   "ShowCursorOverlay": true
 }

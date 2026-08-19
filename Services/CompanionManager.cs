@@ -26,6 +26,7 @@ public class CompanionManager : IAsyncDisposable
 
     private CancellationTokenSource? _sessionCts;
     private readonly List<byte> _audioBuffer = new();
+    private bool _includeScreenThisTurn = true;
 
     public event Action<AppState>? StateChanged;
     public event Action<double, double, string>? PointReceived;
@@ -34,8 +35,9 @@ public class CompanionManager : IAsyncDisposable
     public event Action<string>? FeedbackReceived;
     /// <summary>Fires once the mic has stopped and transcription is about to start — triggers the spinner pulse.</summary>
     public event Action? TranscriptConfirmed;
-    /// <summary>Fires right as Claude's reply starts streaming in — UI should clear/show the reply panel.</summary>
-    public event Action? ReplyStarted;
+    /// <summary>Fires right as Claude's reply starts streaming in — UI should clear/show the reply panel.
+    /// The bool is true for Action mode (screen was shared), false for Answer mode (it wasn't).</summary>
+    public event Action<bool>? ReplyStarted;
     /// <summary>Fires with each new piece of reply text as it's safe to reveal (POINT tags never shown, even partially).</summary>
     public event Action<string>? ReplyChunkReceived;
     /// <summary>Fires when a reply in progress is interrupted by a new push-to-talk press — UI should hide the panel.</summary>
@@ -71,7 +73,12 @@ public class CompanionManager : IAsyncDisposable
 
     // ── Push-to-talk lifecycle ──────────────────────────────────────────────
 
-    public Task OnPushToTalkPressed()
+    /// <param name="includeScreen">
+    /// True = Action mode (default): a screenshot is captured and sent, Claude can point
+    /// at something on screen. False = Answer mode: no screenshot is captured or sent at
+    /// all, pure Q&amp;A -- for when you don't want the current screen shared.
+    /// </param>
+    public Task OnPushToTalkPressed(bool includeScreen = true)
     {
         // Allow pressing hotkey while a reply is still streaming in — dismiss it and listen again
         if (State == AppState.Speaking)
@@ -88,7 +95,8 @@ public class CompanionManager : IAsyncDisposable
             return Task.CompletedTask;
         }
 
-        Logger.Log("[Hotkey] Push-to-talk PRESSED");
+        Logger.Log($"[Hotkey] Push-to-talk PRESSED (mode={(includeScreen ? "Action" : "Answer")})");
+        _includeScreenThisTurn = includeScreen;
         State = AppState.Listening;
         _sessionCts = new CancellationTokenSource();
 
@@ -120,16 +128,23 @@ public class CompanionManager : IAsyncDisposable
         lock (_audioBuffer) clip = _audioBuffer.ToArray();
 
         // Capture screens while Whisper is (about to be) working — same as the cloud build.
-        List<ScreenshotResult> screenshots;
-        try
+        // Skipped entirely in Answer mode: nothing is captured, nothing is sent.
+        List<ScreenshotResult> screenshots = [];
+        if (_includeScreenThisTurn)
         {
-            screenshots = _screen.CaptureAll();
-            Logger.Log($"[Screen] Captured {screenshots.Count} display(s)");
+            try
+            {
+                screenshots = _screen.CaptureAll();
+                Logger.Log($"[Screen] Captured {screenshots.Count} display(s)");
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"[Screen] Capture failed: {ex.Message}");
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Logger.Log($"[Screen] Capture failed: {ex.Message}");
-            screenshots = [];
+            Logger.Log("[Screen] Answer mode — no screenshot captured");
         }
 
         TranscriptConfirmed?.Invoke();
@@ -194,7 +209,7 @@ public class CompanionManager : IAsyncDisposable
                 {
                     started = true;
                     State = AppState.Speaking;
-                    ReplyStarted?.Invoke();
+                    ReplyStarted?.Invoke(_includeScreenThisTurn);
                 }
 
                 // Only reveal text we're sure isn't the start of an in-progress [POINT:...] tag —

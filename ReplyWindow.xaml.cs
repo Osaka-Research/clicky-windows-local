@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Media;
 using Screen = System.Windows.Forms.Screen;
 
 namespace ClickyWindows;
@@ -18,12 +19,20 @@ public partial class ReplyWindow : Window
         InitializeComponent();
     }
 
-    /// <summary>Clears any previous reply and shows the panel, anchored top-right.</summary>
-    public void BeginReply()
+    /// <summary>
+    /// Clears any previous reply and shows the panel, anchored top-right. [includeScreen]
+    /// labels the panel with which mode produced this reply -- Action (screen was shared)
+    /// or Answer (it wasn't).
+    /// </summary>
+    public void BeginReply(bool includeScreen)
     {
         Dispatcher.Invoke(() =>
         {
             ReplyText.Text = "";
+            ModeLabel.Text = includeScreen ? "Clicky — Action" : "Clicky — Answer";
+            ModeLabel.Foreground = includeScreen
+                ? new SolidColorBrush(Color.FromRgb(0x7C, 0x8A, 0xFF))   // periwinkle, matches original accent
+                : new SolidColorBrush(Color.FromRgb(0x4C, 0xD9, 0x9C)); // green — no screen shared this turn
             PositionTopRight();
             Show();
             Activate();

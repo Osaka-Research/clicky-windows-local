@@ -26,10 +26,11 @@ still talking.
 
 ## Why a live reply panel instead of TTS
 
-`ReplyWindow` is a small always-on-top, borderless panel anchored to the bottom-right
-corner that streams Claude's answer in as it's generated — no waiting for the full
-response, no audio playback pipeline at all. Text you read instead of a voice you wait
-through; closable any time via its own `×` button.
+`ReplyWindow` is a small always-on-top, borderless panel anchored to the top-right
+corner (grows downward, capped height + scrollable past that) that streams Claude's
+answer in as it's generated — no waiting for the full response, no audio playback
+pipeline at all. Text you read instead of a voice you wait through; closable any time
+via its own `×` button.
 
 `CompanionManager` streams safely: it tracks the last unclosed `[` in the raw response
 and holds back everything from there on, so a `[POINT:...]` tag never flashes on
@@ -48,7 +49,25 @@ streaming in).
    Reachable any time after via the tray icon's **Settings...** item.
 3. First push-to-talk after a fresh install pauses a few seconds while the Whisper
    model downloads (~140MB for the default `base.en` size, cached after that).
-4. Hold `Ctrl+Shift+Space` (default, same as upstream), speak, release.
+4. Hold `Ctrl+Shift+Space` for **Action mode**, or `Ctrl+Shift+A` for **Answer mode**
+   (both default, see below), speak, release.
+
+## Action mode vs. Answer mode
+
+Two independent push-to-talk hotkeys, both wired straight through `HotkeyService` (now
+supports registering more than one) to the same `CompanionManager`:
+
+| | Action mode — `Ctrl+Shift+Space` | Answer mode — `Ctrl+Shift+A` |
+|---|---|---|
+| Screenshot | Captured and sent with the question | **Never captured, never sent** |
+| Claude can point at something on screen | Yes | No — nothing to point at |
+| Use for | "What's this error say", "click the X" | "What's the capital of France", anything that doesn't need your screen |
+
+The reply panel's header shows which mode produced the answer ("Clicky — Action" in
+periwinkle, "Clicky — Answer" in green), so it's always clear afterward whether the
+screen was shared for that turn. Both hotkeys are configurable via `HotkeyModifiers`/
+`HotkeyVirtualKey` (Action) and `AnswerHotkeyModifiers`/`AnswerHotkeyVirtualKey`
+(Answer) in `settings.json`.
 
 ## Whisper model size
 

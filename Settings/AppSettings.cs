@@ -19,9 +19,15 @@ public class AppSettings
     // slower, more RAM. Downloaded once on first run and cached under whisper-models/.
     public string WhisperModelSize { get; set; } = "base.en";
 
-    // Push-to-talk hotkey — default: Ctrl+Shift+Space
+    // Action mode push-to-talk — default: Ctrl+Shift+Space. Sends a screenshot with the
+    // question; Claude can point at (or, in clicky-android, tap) something on screen.
     public uint HotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
     public uint HotkeyVirtualKey { get; set; } = 0x20; // VK_SPACE
+
+    // Answer mode push-to-talk — default: Ctrl+Shift+A. Pure Q&A, no screenshot is
+    // captured or sent at all -- for when you don't want the current screen shared.
+    public uint AnswerHotkeyModifiers { get; set; } = 0x0002 | 0x0004; // MOD_CONTROL | MOD_SHIFT
+    public uint AnswerHotkeyVirtualKey { get; set; } = 0x41; // VK_A
 
     // Overlay settings
     public bool ShowCursorOverlay { get; set; } = true;
