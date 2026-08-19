@@ -25,8 +25,7 @@ public class CompanionManager : IAsyncDisposable
     private readonly AppSettings _settings;
     private readonly IAudioCaptureService _audio;
     private readonly IScreenCaptureService _screen;
-    private readonly ClaudeService _claude;
-    private readonly LocalWhisperService _whisper;
+    private readonly IInferenceBackend _inference;
     private readonly Action<Action> _uiDispatch;
 
     private CancellationTokenSource? _sessionCts;
@@ -68,20 +67,16 @@ public class CompanionManager : IAsyncDisposable
         AppSettings settings,
         IAudioCaptureService audio,
         IScreenCaptureService screen,
+        IInferenceBackend inference,
         Action<Action> uiDispatch)
     {
         _settings = settings;
         _audio = audio;
         _screen = screen;
+        _inference = inference;
         _uiDispatch = uiDispatch;
-        _claude = new ClaudeService(settings);
-        _whisper = new LocalWhisperService(settings.WhisperModelSize);
 
         _audio.PowerLevelChanged += level => AudioLevelChanged?.Invoke(level);
-
-        // Kick off the (potentially slow, first-run-only) model download/load in the
-        // background at startup so the first push-to-talk isn't the one paying for it.
-        _ = _whisper.EnsureModelLoadedAsync();
     }
 
     // ── Push-to-talk lifecycle ──────────────────────────────────────────────
@@ -216,7 +211,7 @@ public class CompanionManager : IAsyncDisposable
         try
         {
             Logger.Log($"[Whisper] Transcribing {clip.Length} bytes ({clip.Length / 32000.0:F1}s)...");
-            transcript = await _whisper.TranscribeAsync(clip, _sessionCts!.Token);
+            transcript = await _inference.TranscribeAsync(clip, _sessionCts!.Token);
             Logger.Info($"Heard: \"{transcript}\"");
         }
         catch (OperationCanceledException) { }
@@ -297,7 +292,7 @@ public class CompanionManager : IAsyncDisposable
 
         try
         {
-            await foreach (var chunk in _claude.StreamResponseAsync(transcript, screenshots, _modeThisTurn, _sessionCts!.Token))
+            await foreach (var chunk in _inference.StreamResponseAsync(transcript, screenshots, _modeThisTurn, _sessionCts!.Token))
             {
                 responseBuilder.Append(chunk);
 
@@ -358,7 +353,7 @@ public class CompanionManager : IAsyncDisposable
                 var resized = _screen.CaptureResized(primaryShot.Bounds, cuW, cuH);
                 if (resized != null)
                 {
-                    var (physX, physY) = await _claude.DetectElementAsync(
+                    var (physX, physY) = await _inference.DetectElementAsync(
                         resized.Base64, detectedPoint.Label,
                         primaryShot.Bounds.Width, primaryShot.Bounds.Height,
                         _sessionCts!.Token);
@@ -397,7 +392,7 @@ public class CompanionManager : IAsyncDisposable
         _sessionCts?.Cancel();
         _audio.AudioChunkAvailable -= OnAudioChunk;
         _audio.Dispose();
-        await _whisper.DisposeAsync();
+        await _inference.DisposeAsync();
         _sessionCts?.Dispose();
     }
 }

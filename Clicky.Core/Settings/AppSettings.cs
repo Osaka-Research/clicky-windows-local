@@ -18,7 +18,22 @@ public class AppSettings
 
     // Local Whisper model size: tiny | base | small | medium. Bigger = more accurate,
     // slower, more RAM. Downloaded once on first run and cached under whisper-models/.
+    // Ignored when UseRemoteServer is true -- the server picks its own model size.
     public string WhisperModelSize { get; set; } = "medium.en";
+
+    // Remote inference: run Whisper transcription and the Claude call on a Clicky.Server
+    // instance instead of on this machine -- for a client with no GPU (local Whisper would
+    // be too slow to feel live) and/or no Anthropic key of its own. When true,
+    // AnthropicApiKey/ClaudeModel/ClaudeProxyUrl/WhisperModelSize above are all unused;
+    // the server's own settings decide those. See Clicky.Core/Services/RemoteInferenceBackend.cs.
+    public bool UseRemoteServer { get; set; } = false;
+    public string RemoteServerUrl { get; set; } = "";   // e.g. "https://clicky.example.com"
+    public string RemoteServerToken { get; set; } = ""; // must match the server's ServerAuthToken
+
+    // Server-only: the shared secret clients must send as "Authorization: Bearer <token>".
+    // Unused by Windows/Mac clients -- only Clicky.Server reads this field, from its own
+    // separate settings.json (see AppPaths.AppFolderName = "ClickyServer" in its Program.cs).
+    public string ServerAuthToken { get; set; } = "";
 
     // Hotkey field values are raw platform key codes -- each platform's HotkeyService
     // interprets HotkeyModifiers/HotkeyVirtualKey using its own OS conventions (Win32

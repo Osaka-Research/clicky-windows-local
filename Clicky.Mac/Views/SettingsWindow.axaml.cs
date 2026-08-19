@@ -29,6 +29,10 @@ public partial class SettingsWindow : Window
         ModelBox.Text = settings.ClaudeModel;
         ProxyUrlBox.Text = settings.ClaudeProxyUrl;
         SystemAudioDeviceBox.Text = settings.SystemAudioInputDeviceName;
+        UseRemoteServerBox.IsChecked = settings.UseRemoteServer;
+        RemoteServerUrlBox.Text = settings.RemoteServerUrl;
+        RemoteServerTokenBox.Text = settings.RemoteServerToken;
+        RemoteServerPanel.IsVisible = settings.UseRemoteServer;
 
         foreach (var item in WhisperModelBox.Items)
         {
@@ -51,12 +55,20 @@ public partial class SettingsWindow : Window
         _settings.ClaudeModel = string.IsNullOrWhiteSpace(ModelBox.Text) ? _settings.ClaudeModel : ModelBox.Text.Trim();
         _settings.ClaudeProxyUrl = ProxyUrlBox.Text?.Trim() ?? "";
         _settings.SystemAudioInputDeviceName = SystemAudioDeviceBox.Text?.Trim() ?? "";
+        _settings.UseRemoteServer = UseRemoteServerBox.IsChecked == true;
+        _settings.RemoteServerUrl = RemoteServerUrlBox.Text?.Trim() ?? "";
+        _settings.RemoteServerToken = RemoteServerTokenBox.Text?.Trim() ?? "";
         if (WhisperModelBox.SelectedItem is ComboBoxItem { Content: string size })
             _settings.WhisperModelSize = size;
 
         _settings.Save();
         Saved = true;
         Close();
+    }
+
+    private void OnRemoteServerToggled(object? sender, RoutedEventArgs e)
+    {
+        RemoteServerPanel.IsVisible = UseRemoteServerBox.IsChecked == true;
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close();

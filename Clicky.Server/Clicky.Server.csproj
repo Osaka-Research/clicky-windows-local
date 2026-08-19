@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ClickyServer</RootNamespace>
+    <AssemblyName>ClickyServer</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The whole point of this project is to put Whisper on a machine with a real GPU so
+         clients without one don't have to eat CPU transcription latency. CPU runtime comes
+         in transitively via Clicky.Core; this adds CUDA on top, same as the Windows client. -->
+    <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.7.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Clicky.Core\Clicky.Core.csproj" />
+  </ItemGroup>
+
+</Project>

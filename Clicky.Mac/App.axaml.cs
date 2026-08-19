@@ -53,10 +53,16 @@ public partial class App : Application
 
         _reply = new ReplyWindow();
 
+        IInferenceBackend inference = _settings.UseRemoteServer && !string.IsNullOrWhiteSpace(_settings.RemoteServerUrl)
+            ? new RemoteInferenceBackend(_settings.RemoteServerUrl, _settings.RemoteServerToken)
+            : new LocalInferenceBackend(_settings);
+        Logger.Log($"[Inference] Using {(inference is RemoteInferenceBackend ? $"remote server at {_settings.RemoteServerUrl}" : "local Whisper + direct Claude call")}");
+
         _companion = new CompanionManager(
             _settings,
             new MacAudioCaptureService(_settings.SystemAudioInputDeviceName),
             new MacScreenCaptureService(),
+            inference,
             uiDispatch: a => Dispatcher.UIThread.Invoke(a));
 
         _companion.TranscriptReady += (transcript, mode) => _reply.ShowTranscript(transcript, mode);
@@ -81,6 +87,8 @@ public partial class App : Application
     {
         if (!string.IsNullOrWhiteSpace(_settings.AnthropicApiKey))
             return true;
+        if (_settings.UseRemoteServer && !string.IsNullOrWhiteSpace(_settings.RemoteServerUrl))
+            return true; // no local API key needed -- the server holds one
 
         var dialog = new SettingsWindow(_settings);
         dialog.Show();

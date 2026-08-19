@@ -45,6 +45,20 @@
             <TextBox x:Name="SystemAudioDeviceBox" Watermark="BlackHole 2ch"/>
         </StackPanel>
 
+        <CheckBox x:Name="UseRemoteServerBox" Content="Use a remote Clicky server instead (no GPU / no API key needed here)"
+                  Foreground="#ECEEED" IsCheckedChanged="OnRemoteServerToggled"/>
+
+        <StackPanel x:Name="RemoteServerPanel" Spacing="12">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Server URL" Foreground="#8A8F98" FontSize="12"/>
+                <TextBox x:Name="RemoteServerUrlBox" Watermark="https://clicky.example.com"/>
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Server token" Foreground="#8A8F98" FontSize="12"/>
+                <TextBox x:Name="RemoteServerTokenBox" PasswordChar="•"/>
+            </StackPanel>
+        </StackPanel>
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
             <Button x:Name="CancelButton" Content="Cancel" Click="OnCancel"/>
             <Button x:Name="SaveButton" Content="Save" Click="OnSave" Background="#7C8AFF" Foreground="White"/>

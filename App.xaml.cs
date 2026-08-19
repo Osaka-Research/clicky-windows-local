@@ -49,10 +49,16 @@ public partial class App
             return;
         }
 
+        IInferenceBackend inference = _settings.UseRemoteServer && !string.IsNullOrWhiteSpace(_settings.RemoteServerUrl)
+            ? new RemoteInferenceBackend(_settings.RemoteServerUrl, _settings.RemoteServerToken)
+            : new LocalInferenceBackend(_settings);
+        Logger.Log($"[Inference] Using {(inference is RemoteInferenceBackend ? $"remote server at {_settings.RemoteServerUrl}" : "local Whisper + direct Claude call")}");
+
         _companion = new CompanionManager(
             _settings,
             new AudioCaptureService(),
             new ScreenCaptureService(),
+            inference,
             uiDispatch: a => Dispatcher.Invoke(a));
 
         _overlay = new OverlayWindow();
@@ -81,6 +87,8 @@ public partial class App
     {
         if (!string.IsNullOrWhiteSpace(_settings.AnthropicApiKey))
             return true;
+        if (_settings.UseRemoteServer && !string.IsNullOrWhiteSpace(_settings.RemoteServerUrl))
+            return true; // no local API key needed -- the server holds one
 
         // First run (or key was cleared) — open the settings window instead of pointing
         // at a JSON file. Blocking: nothing starts until a key is entered or the user quits.

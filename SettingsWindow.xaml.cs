@@ -24,6 +24,10 @@ public partial class SettingsWindow : Window
         ApiKeyBox.Password = _settings.AnthropicApiKey;
         ModelBox.Text = _settings.ClaudeModel;
         ProxyUrlBox.Text = _settings.ClaudeProxyUrl;
+        UseRemoteServerBox.IsChecked = _settings.UseRemoteServer;
+        RemoteServerUrlBox.Text = _settings.RemoteServerUrl;
+        RemoteServerTokenBox.Password = _settings.RemoteServerToken;
+        RemoteServerPanel.Visibility = _settings.UseRemoteServer ? Visibility.Visible : Visibility.Collapsed;
 
         var sizeToSelect = string.IsNullOrWhiteSpace(_settings.WhisperModelSize) ? "medium.en" : _settings.WhisperModelSize;
         foreach (ComboBoxItem item in WhisperSizeBox.Items)
@@ -41,11 +45,21 @@ public partial class SettingsWindow : Window
 
     private void OnSave(object sender, RoutedEventArgs e)
     {
+        bool useRemote = UseRemoteServerBox.IsChecked == true;
         var key = ApiKeyBox.Password.Trim();
-        if (string.IsNullOrWhiteSpace(key))
+        var remoteUrl = RemoteServerUrlBox.Text.Trim();
+
+        if (!useRemote && string.IsNullOrWhiteSpace(key))
         {
-            System.Windows.MessageBox.Show(this, "Anthropic API key is required.", "Clicky Settings",
+            System.Windows.MessageBox.Show(this,
+                "Either an Anthropic API key or a remote server URL is required.", "Clicky Settings",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (useRemote && string.IsNullOrWhiteSpace(remoteUrl))
+        {
+            System.Windows.MessageBox.Show(this, "Server URL is required when using a remote server.",
+                "Clicky Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -53,11 +67,19 @@ public partial class SettingsWindow : Window
         _settings.ClaudeModel = string.IsNullOrWhiteSpace(ModelBox.Text) ? "claude-sonnet-4-6" : ModelBox.Text.Trim();
         _settings.ClaudeProxyUrl = ProxyUrlBox.Text.Trim();
         _settings.WhisperModelSize = (WhisperSizeBox.SelectedItem as ComboBoxItem)?.Content as string ?? "medium.en";
+        _settings.UseRemoteServer = useRemote;
+        _settings.RemoteServerUrl = remoteUrl;
+        _settings.RemoteServerToken = RemoteServerTokenBox.Password.Trim();
         _settings.Save();
 
         Saved = true;
         DialogResult = true;
         Close();
+    }
+
+    private void OnRemoteServerToggled(object sender, RoutedEventArgs e)
+    {
+        RemoteServerPanel.Visibility = UseRemoteServerBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnCancel(object sender, RoutedEventArgs e)

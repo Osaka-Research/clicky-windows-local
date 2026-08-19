@@ -34,6 +34,17 @@
         <TextBlock Text="&quot;.en&quot; = English-only, more accurate than multilingual at the same size."
                    Foreground="#888888" FontSize="11" Margin="0,0,0,20" TextWrapping="Wrap"/>
 
+        <CheckBox x:Name="UseRemoteServerBox" Content="Use a remote Clicky server instead (no GPU / no API key needed here)"
+                   Foreground="#DDDDDD" Margin="0,0,0,12" Checked="OnRemoteServerToggled" Unchecked="OnRemoteServerToggled"/>
+
+        <StackPanel x:Name="RemoteServerPanel">
+            <TextBlock Text="Server URL" Foreground="#DDDDDD" Margin="0,0,0,4"/>
+            <TextBox x:Name="RemoteServerUrlBox" Padding="6" Margin="0,0,0,12"/>
+
+            <TextBlock Text="Server token" Foreground="#DDDDDD" Margin="0,0,0,4"/>
+            <PasswordBox x:Name="RemoteServerTokenBox" Padding="6" Margin="0,0,0,20"/>
+        </StackPanel>
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="CancelButton" Content="Cancel" Padding="14,6" Margin="0,0,8,0" Click="OnCancel"/>
             <Button x:Name="SaveButton" Content="Save" Padding="14,6" Click="OnSave" IsDefault="True"/>

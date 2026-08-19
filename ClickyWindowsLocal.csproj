@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Remove="Clicky.Core\**\*.cs" />
     <Compile Remove="Clicky.Mac\**\*.cs" />
+    <Compile Remove="Clicky.Server\**\*.cs" />
   </ItemGroup>
 
 </Project>
