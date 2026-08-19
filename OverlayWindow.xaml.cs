@@ -78,6 +78,9 @@ public partial class OverlayWindow : Window
     {
         var hwnd = new WindowInteropHelper(this).Handle;
 
+        if (!Win32.SetWindowDisplayAffinity(hwnd, Win32.WDA_EXCLUDEFROMCAPTURE))
+            Logger.Error("[Overlay] SetWindowDisplayAffinity failed -- pointer dot will be visible in screen shares (needs Windows 10 2004+).");
+
         int exStyle = Win32.GetWindowLong(hwnd, Win32.GWL_EXSTYLE);
         exStyle |= Win32.WS_EX_LAYERED | Win32.WS_EX_TRANSPARENT | Win32.WS_EX_NOACTIVATE;
         Win32.SetWindowLong(hwnd, Win32.GWL_EXSTYLE, exStyle);

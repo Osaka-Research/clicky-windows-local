@@ -60,6 +60,15 @@ internal static class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
+    // Excludes a window from screen capture (Zoom/Teams/OBS etc. show nothing where it
+    // sits) while it stays fully visible locally. Requires Windows 10 2004+ (build 19041).
+    public const uint WDA_NONE = 0x00000000;
+    public const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
+
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
     {

@@ -1,5 +1,7 @@
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
+using ClickyWindows.Helpers;
 using ClickyWindows.Models;
 using Screen = System.Windows.Forms.Screen;
 
@@ -18,6 +20,14 @@ public partial class ReplyWindow : Window
     public ReplyWindow()
     {
         InitializeComponent();
+        SourceInitialized += OnSourceInitialized;
+    }
+
+    private void OnSourceInitialized(object? sender, EventArgs e)
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (!Win32.SetWindowDisplayAffinity(hwnd, Win32.WDA_EXCLUDEFROMCAPTURE))
+            Logger.Error("[Reply] SetWindowDisplayAffinity failed -- reply panel will be visible in screen shares (needs Windows 10 2004+).");
     }
 
     /// <summary>
