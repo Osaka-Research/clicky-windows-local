@@ -9,16 +9,16 @@
 
   <!--
     Platform-agnostic core: everything shared between the Windows (WPF) and macOS
-    (Avalonia) apps -- Claude API client, local Whisper transcription, settings
+    (Avalonia) apps — Claude API client, local Whisper transcription, settings
     persistence, and the CompanionManager orchestration loop. No WPF, no WinForms,
-    no Win32 P/Invoke -- those live only in each platform project, wired in behind
+    no Win32 P/Invoke — those live only in each platform project, wired in behind
     IAudioCaptureService / IScreenCaptureService and a UI-thread dispatch delegate.
   -->
 
   <ItemGroup>
     <PackageReference Include="Whisper.net" Version="1.7.4" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.7.4" />
-    <!-- Only for the Rectangle/Point/Size structs in ScreenshotResult -- those are plain
+    <!-- Only for the Rectangle/Point/Size structs in ScreenshotResult — those are plain
          value types with no platform dependency; Bitmap/Graphics (the actually
          Windows-only members of this package) are never used here. -->
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
