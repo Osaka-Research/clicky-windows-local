@@ -1,7 +1,7 @@
 <Window x:Class="ClickyWindows.OverlayWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ClickyOverlay"
+        Title="AutoOverlay"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"

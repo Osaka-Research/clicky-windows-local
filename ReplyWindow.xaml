@@ -1,7 +1,7 @@
 <Window x:Class="ClickyWindows.ReplyWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Clicky"
+        Title="Auto"
         Width="460"
         SizeToContent="Height"
         MaxHeight="480"
@@ -30,7 +30,7 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,8">
-                <TextBlock x:Name="ModeLabel" Text="Clicky" Foreground="#7C8AFF" FontFamily="Segoe UI" FontSize="12" FontWeight="Bold"/>
+                <TextBlock x:Name="ModeLabel" Text="Auto" Foreground="#7C8AFF" FontFamily="Segoe UI" FontSize="12" FontWeight="Bold"/>
                 <Button x:Name="CloseButton" Content="✕" HorizontalAlignment="Right"
                         Background="Transparent" BorderThickness="0" Foreground="#888888"
                         Padding="4,0" FontSize="12" Click="OnClose" Cursor="Hand"/>

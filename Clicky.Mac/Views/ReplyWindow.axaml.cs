@@ -39,11 +39,11 @@ public partial class ReplyWindow : Window
 
             var (label, colorHex) = mode switch
             {
-                InteractionMode.Action => ("Clicky — Action", "#7C8AFF"),
-                InteractionMode.Answer => ("Clicky — Answer", "#4CD99C"),
-                InteractionMode.SystemAudio => ("Clicky — System Audio", "#FFB347"),
-                InteractionMode.ScreenshotQA => ("Clicky — Screen Q&A", "#C77DFF"),
-                _ => ("Clicky", "#7C8AFF"),
+                InteractionMode.Action => ("Auto — Action", "#7C8AFF"),
+                InteractionMode.Answer => ("Auto — Answer", "#4CD99C"),
+                InteractionMode.SystemAudio => ("Auto — System Audio", "#FFB347"),
+                InteractionMode.ScreenshotQA => ("Auto — Screen Q&A", "#C77DFF"),
+                _ => ("Auto", "#7C8AFF"),
             };
             ModeLabel.Text = label;
             ModeLabel.Foreground = new SolidColorBrush(Color.Parse(colorHex));

@@ -44,11 +44,11 @@ public partial class ReplyWindow : Window
             ReplyText.Text = "";
             var (label, colorHex) = mode switch
             {
-                InteractionMode.Action => ("Clicky — Action", "#7C8AFF"),       // periwinkle, matches original accent
-                InteractionMode.Answer => ("Clicky — Answer", "#4CD99C"),       // green — no screen shared this turn
-                InteractionMode.SystemAudio => ("Clicky — System Audio", "#FFB347"), // amber — listening to speakers, not the mic
-                InteractionMode.ScreenshotQA => ("Clicky — Screen Q&A", "#C77DFF"),  // violet — one-shot, answers everything visible
-                _ => ("Clicky", "#7C8AFF"),
+                InteractionMode.Action => ("Auto — Action", "#7C8AFF"),       // periwinkle, matches original accent
+                InteractionMode.Answer => ("Auto — Answer", "#4CD99C"),       // green — no screen shared this turn
+                InteractionMode.SystemAudio => ("Auto — System Audio", "#FFB347"), // amber — listening to speakers, not the mic
+                InteractionMode.ScreenshotQA => ("Auto — Screen Q&A", "#C77DFF"),  // violet — one-shot, answers everything visible
+                _ => ("Auto", "#7C8AFF"),
             };
             ModeLabel.Text = label;
             ModeLabel.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorHex));

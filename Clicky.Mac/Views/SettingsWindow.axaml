@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="ClickyMac.Views.SettingsWindow"
-        Title="Clicky Settings"
+        Title="Auto Settings"
         Width="420"
         SizeToContent="Height"
         CanResize="False"
@@ -9,7 +9,7 @@
         Background="#15161B">
 
     <StackPanel Margin="20" Spacing="12">
-        <TextBlock Text="Clicky Settings" FontSize="16" FontWeight="Bold" Foreground="#ECEEED"/>
+        <TextBlock Text="Auto Settings" FontSize="16" FontWeight="Bold" Foreground="#ECEEED"/>
 
         <StackPanel Spacing="4">
             <TextBlock Text="Anthropic API key" Foreground="#8A8F98" FontSize="12"/>
@@ -45,7 +45,7 @@
             <TextBox x:Name="SystemAudioDeviceBox" Watermark="BlackHole 2ch"/>
         </StackPanel>
 
-        <CheckBox x:Name="UseRemoteServerBox" Content="Use a remote Clicky server instead (no GPU / no API key needed here)"
+        <CheckBox x:Name="UseRemoteServerBox" Content="Use a remote Auto server instead (no GPU / no API key needed here)"
                   Foreground="#ECEEED" IsCheckedChanged="OnRemoteServerToggled"/>
 
         <StackPanel x:Name="RemoteServerPanel" Spacing="12">

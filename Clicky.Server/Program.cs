@@ -25,7 +25,7 @@ if (string.IsNullOrWhiteSpace(settings.ServerAuthToken))
                  "exposing this beyond localhost.");
 }
 
-Logger.Log("=== Clicky Server starting ===");
+Logger.Log("=== Auto Server starting ===");
 Logger.Log($"Whisper model: {settings.WhisperModelSize}, Claude model: {settings.ClaudeModel}");
 
 var whisper = new LocalWhisperService(settings.WhisperModelSize);
@@ -56,7 +56,7 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-app.MapGet("/", () => "Clicky Server is running.");
+app.MapGet("/", () => "Auto Server is running.");
 
 app.MapPost("/transcribe", async (HttpContext ctx) =>
 {

@@ -29,7 +29,7 @@ public static class Logger
                 {
                     var dir = Path.GetDirectoryName(_logPath)!;
                     Directory.CreateDirectory(dir);
-                    File.WriteAllText(_logPath, $"=== Clicky log started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}");
+                    File.WriteAllText(_logPath, $"=== Auto log started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}");
                 }
                 catch { }
             }

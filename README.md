@@ -1,4 +1,4 @@
-# Clicky Windows — local STT/TTS variant
+# Auto Windows — local STT/TTS variant
 
 A fork of [clicky_windows](https://github.com/emreyilmaz46/clicky_windows) (itself a
 Windows port of [farzaa/clicky](https://github.com/farzaa/clicky)) that drops two of
@@ -83,8 +83,8 @@ Screenshot Q&A skips audio/Whisper entirely — `CompanionManager.OnScreenshotQa
 fires straight off the hotkey's key-down event, captures one screenshot, and sends a
 fixed prompt ("Answer every question visible on the screen, one by one.") alongside it.
 
-The reply panel's header shows which mode produced the answer ("Clicky — Action" in
-periwinkle, "Clicky — Answer" in green, "Clicky — System Audio" in amber, "Clicky —
+The reply panel's header shows which mode produced the answer ("Auto — Action" in
+periwinkle, "Auto — Answer" in green, "Auto — System Audio" in amber, "Auto —
 Screen Q&A" in violet), so it's always clear afterward what was shared for that turn.
 All four hotkeys are configurable in `settings.json`: `HotkeyModifiers`/
 `HotkeyVirtualKey` (Action), `AnswerHotkeyModifiers`/`AnswerHotkeyVirtualKey` (Answer),

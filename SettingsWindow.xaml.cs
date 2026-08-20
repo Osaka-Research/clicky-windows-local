@@ -52,14 +52,14 @@ public partial class SettingsWindow : Window
         if (!useRemote && string.IsNullOrWhiteSpace(key))
         {
             System.Windows.MessageBox.Show(this,
-                "Either an Anthropic API key or a remote server URL is required.", "Clicky Settings",
+                "Either an Anthropic API key or a remote server URL is required.", "Auto Settings",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         if (useRemote && string.IsNullOrWhiteSpace(remoteUrl))
         {
             System.Windows.MessageBox.Show(this, "Server URL is required when using a remote server.",
-                "Clicky Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
+                "Auto Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 

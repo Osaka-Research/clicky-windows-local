@@ -27,15 +27,15 @@ public partial class App
         Logger.OnError += msg => Dispatcher.Invoke(() => ShowBalloon(msg, ToolTipIcon.Error));
         Logger.OnInfo  += msg => Dispatcher.Invoke(() => ShowBalloon(msg, ToolTipIcon.Info));
 
-        Logger.Log("=== Clicky (local) starting ===");
+        Logger.Log("=== Auto (local) starting ===");
 
         // Single-instance guard
         var mutex = new System.Threading.Mutex(true, "ClickyWindowsLocal_SingleInstance", out bool isFirst);
         if (!isFirst)
         {
             System.Windows.MessageBox.Show(
-                "Clicky is already running. Check the system tray.",
-                "Clicky", MessageBoxButton.OK, MessageBoxImage.Information);
+                "Auto is already running. Check the system tray.",
+                "Auto", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
         }
@@ -72,11 +72,11 @@ public partial class App
 
         SetupTrayIcon();
 
-        Logger.Log($"Clicky ready. Action: {GetActionHotkeyDescription()}, Answer: {GetAnswerHotkeyDescription()}, " +
+        Logger.Log($"Auto ready. Action: {GetActionHotkeyDescription()}, Answer: {GetAnswerHotkeyDescription()}, " +
                    $"System Audio: {GetSystemAudioHotkeyDescription()}, Screenshot Q&A: {GetScreenshotQaHotkeyDescription()}");
         Logger.Log($"Log file: {Logger.LogFilePath}");
         ShowBalloon(
-            $"Clicky ready! Hold {GetActionHotkeyDescription()} to talk with your screen shared, " +
+            $"Auto ready! Hold {GetActionHotkeyDescription()} to talk with your screen shared, " +
             $"{GetAnswerHotkeyDescription()} for a plain answer with nothing shared, " +
             $"{GetSystemAudioHotkeyDescription()} to react to whatever's playing through your speakers, or tap " +
             $"{GetScreenshotQaHotkeyDescription()} to answer every question on screen right now. " +
@@ -125,7 +125,7 @@ public partial class App
         _trayIcon = new NotifyIcon
         {
             Icon = icon,
-            Text = $"Clicky (local) — {actionDesc}: action, {answerDesc}: answer, {systemAudioDesc}: sys audio, {screenshotQaDesc}: screen Q&A",
+            Text = $"Auto (local) — {actionDesc}: action, {answerDesc}: answer, {systemAudioDesc}: sys audio, {screenshotQaDesc}: screen Q&A",
             Visible = true,
         };
 
@@ -138,7 +138,7 @@ public partial class App
         menu.Items.Add("Settings...", null, (_, _) => OpenSettings());
         menu.Items.Add("View Log", null, (_, _) => OpenLog());
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Quit Clicky", null, (_, _) => QuitApp());
+        menu.Items.Add("Quit Auto", null, (_, _) => QuitApp());
 
         _trayIcon.ContextMenuStrip = menu;
         _trayIcon.DoubleClick += (_, _) => OpenLog();
@@ -151,7 +151,7 @@ public partial class App
 
     private void ShowBalloon(string message, ToolTipIcon icon)
     {
-        _trayIcon?.ShowBalloonTip(5000, "Clicky", message, icon);
+        _trayIcon?.ShowBalloonTip(5000, "Auto", message, icon);
     }
 
     private void OpenLog()

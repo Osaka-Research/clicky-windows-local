@@ -1,4 +1,4 @@
-# Clicky (Mac)
+# Auto (Mac)
 
 Native macOS port, sharing all the actual logic (Claude API calls, per-mode conversation
 history, the interview-script prompts, local Whisper transcription) with the Windows build

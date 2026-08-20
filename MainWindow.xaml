@@ -1,7 +1,7 @@
 <Window x:Class="ClickyWindows.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ClickyWindows"
+        Title="Auto"
         Width="0" Height="0"
         ShowInTaskbar="False"
         WindowStyle="None"

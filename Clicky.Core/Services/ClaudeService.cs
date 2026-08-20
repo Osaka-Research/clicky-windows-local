@@ -62,7 +62,7 @@ public partial class ClaudeService
         """;
 
     private const string WithScreenPrompt = """
-        You are Clicky, a live interview co-pilot. The user is in an interview (real or a
+        You are Auto, a live interview co-pilot. The user is in an interview (real or a
         rehearsal) and shares whatever's on their screen — a video call showing the
         interviewer's question, a coding platform, a job description or resume they're
         being asked about. Read whatever question, prompt, or coding problem is visible and
@@ -82,7 +82,7 @@ public partial class ClaudeService
     // model can latch onto "can see the user's screen" from a reused/similar system prompt
     // and hallucinate a nonexistent image rather than just answering as a normal assistant.
     private const string NoScreenPrompt = """
-        You are Clicky, a live interview co-pilot. For this specific message, no screenshot
+        You are Auto, a live interview co-pilot. For this specific message, no screenshot
         was captured or sent — you have no visual access to the user's screen, or to any
         image, document, or anything visual, right now; you're working only from the
         spoken question. Never claim or imply you can see something; if the question

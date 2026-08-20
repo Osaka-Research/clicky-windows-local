@@ -41,7 +41,7 @@ public partial class App : Application
 
     private async Task StartAsync(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        Logger.Log("=== Clicky (Mac) starting ===");
+        Logger.Log("=== Auto (Mac) starting ===");
         _settings = AppSettings.Load();
         Logger.Log($"Settings loaded from: {Logger.LogFilePath.Replace("clicky.log", "settings.json")}");
 
@@ -78,7 +78,7 @@ public partial class App : Application
         SetupTrayIcon();
 
         var desc = HotkeyDescriptions();
-        Logger.Log($"Clicky (Mac) ready. Action: {desc.action}, Answer: {desc.answer}, " +
+        Logger.Log($"Auto (Mac) ready. Action: {desc.action}, Answer: {desc.answer}, " +
                    $"System Audio: {desc.sysAudio}, Screenshot Q&A: {desc.shot}");
         Logger.Log($"Log file: {Logger.LogFilePath}");
     }
@@ -153,7 +153,7 @@ public partial class App : Application
 
         menu.Items.Add(new NativeMenuItemSeparator());
 
-        var quitItem = new NativeMenuItem("Quit Clicky");
+        var quitItem = new NativeMenuItem("Quit Auto");
         quitItem.Click += async (_, _) => await QuitAppAsync();
         menu.Items.Add(quitItem);
 
@@ -161,7 +161,7 @@ public partial class App : Application
         // can actually be run and the default fallback appearance can be checked.
         _trayIcon = new TrayIcon
         {
-            ToolTipText = $"Clicky — {desc.action}: action, {desc.answer}: answer, " +
+            ToolTipText = $"Auto — {desc.action}: action, {desc.answer}: answer, " +
                           $"{desc.sysAudio}: sys audio, {desc.shot}: screen Q&A",
             Menu = menu,
             IsVisible = true,

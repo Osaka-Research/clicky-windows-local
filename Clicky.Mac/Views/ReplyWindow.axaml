@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="ClickyMac.Views.ReplyWindow"
-        Title="Clicky"
+        Title="Auto"
         Width="460"
         SizeToContent="Height"
         MaxHeight="480"
@@ -23,7 +23,7 @@
         <Grid RowDefinitions="Auto,Auto,Auto">
 
             <Grid Grid.Row="0" Margin="0,0,0,8" ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="ModeLabel" Grid.Column="0" Text="Clicky" Foreground="#7C8AFF" FontSize="12" FontWeight="Bold"/>
+                <TextBlock x:Name="ModeLabel" Grid.Column="0" Text="Auto" Foreground="#7C8AFF" FontSize="12" FontWeight="Bold"/>
                 <Button x:Name="CloseButton" Grid.Column="1" Content="&#x2715;"
                         Background="Transparent" BorderThickness="0" Foreground="#888888"
                         Padding="4,0" FontSize="12" Click="OnClose" Cursor="Hand"/>
