@@ -43,7 +43,7 @@ public partial class App : Application
     {
         Logger.Log("=== Auto (Mac) starting ===");
         _settings = AppSettings.Load();
-        Logger.Log($"Settings loaded from: {Logger.LogFilePath.Replace("clicky.log", "settings.json")}");
+        Logger.Log($"Settings loaded from: {Logger.LogFilePath.Replace("auto.log", "settings.json")}");
 
         if (!await ValidateSettingsAsync())
         {
@@ -68,7 +68,7 @@ public partial class App : Application
         _companion.TranscriptReady += (transcript, mode) => _reply.ShowTranscript(transcript, mode);
         _companion.ReplyChunkReceived += chunk => _reply.AppendChunk(chunk);
         _companion.ReplyDismissed += () => Dispatcher.UIThread.Invoke(() => _reply.Hide());
-        // No overlay/pointing-dot window on Mac yet (see Clicky.Mac/README.md) -- Action
+        // No overlay/pointing-dot window on Mac yet (see Auto.Mac/README.md) -- Action
         // mode's POINT tags are still parsed and Computer Use still runs, PointReceived
         // just has nothing subscribed to show it on screen. Feedback messages (that would
         // otherwise show as a bubble near the cursor on Windows) go to the log for now.
@@ -157,7 +157,7 @@ public partial class App : Application
         quitItem.Click += async (_, _) => await QuitAppAsync();
         menu.Items.Add(quitItem);
 
-        // No custom icon set yet -- see Clicky.Mac/README.md for adding one once this
+        // No custom icon set yet -- see Auto.Mac/README.md for adding one once this
         // can actually be run and the default fallback appearance can be checked.
         _trayIcon = new TrayIcon
         {

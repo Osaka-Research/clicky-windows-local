@@ -10,7 +10,7 @@
     <!-- WinForms for NotifyIcon (system tray) and System.Drawing screen capture -->
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AssemblyName>ClickyWindowsLocal</AssemblyName>
+    <AssemblyName>Auto</AssemblyName>
     <RootNamespace>ClickyWindows</RootNamespace>
     <Platforms>x64</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -23,7 +23,7 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
 
-    <!-- Whisper.net + Whisper.net.Runtime (CPU) come in transitively via Clicky.Core.
+    <!-- Whisper.net + Whisper.net.Runtime (CPU) come in transitively via Auto.Core.
          This adds the CUDA native runtime on top: Whisper.net picks it automatically
          when an NVIDIA GPU + driver are present, falling back to CPU otherwise — no
          code change needed either way. Windows-only; macOS has no CUDA. -->
@@ -31,17 +31,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="Clicky.Core\Clicky.Core.csproj" />
+    <ProjectReference Include="Auto.Core\Auto.Core.csproj" />
   </ItemGroup>
 
-  <!-- Clicky.Core is a subfolder of this project's own directory (nested in the same git
+  <!-- Auto.Core is a subfolder of this project's own directory (nested in the same git
        repo), so the default **/*.cs glob above would otherwise compile its source files
        directly into this assembly too, on top of the ProjectReference above — same types
        compiled twice, ambiguous-type errors. Exclude it explicitly. -->
   <ItemGroup>
-    <Compile Remove="Clicky.Core\**\*.cs" />
-    <Compile Remove="Clicky.Mac\**\*.cs" />
-    <Compile Remove="Clicky.Server\**\*.cs" />
+    <Compile Remove="Auto.Core\**\*.cs" />
+    <Compile Remove="Auto.Mac\**\*.cs" />
+    <Compile Remove="Auto.Server\**\*.cs" />
   </ItemGroup>
 
 </Project>

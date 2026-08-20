@@ -7,13 +7,13 @@ using ClickyWindows.Models;
 namespace ClickyWindows.Services;
 
 /// <summary>
-/// Talks to a Clicky.Server instance instead of running Whisper/Claude on this machine --
+/// Talks to an Auto.Server instance instead of running Whisper/Claude on this machine --
 /// for a client with no GPU (Whisper would be too slow) and/or no Anthropic API key of its
 /// own (the server holds one key, shared across whichever clients it's configured to
 /// trust). Same three operations as LocalInferenceBackend, over HTTP instead of in-process.
 ///
 /// A random per-instance [sessionId] is sent with every request so the server can keep a
-/// separate Claude conversation history per client (see Clicky.Server) instead of every
+/// separate Claude conversation history per client (see Auto.Server) instead of every
 /// connected client's turns bleeding into one shared context -- the same per-mode isolation
 /// ClaudeService already does locally (see its _histories dictionary), just keyed by
 /// session on top of by mode.

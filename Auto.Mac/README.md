@@ -2,7 +2,7 @@
 
 Native macOS port, sharing all the actual logic (Claude API calls, per-mode conversation
 history, the interview-script prompts, local Whisper transcription) with the Windows build
-via `Clicky.Core` — see that project's comments for how the shared pieces work. This
+via `Auto.Core` — see that project's comments for how the shared pieces work. This
 project is only the macOS-specific glue: hotkeys, audio/screen capture, and the tray icon
 + reply panel UI.
 
@@ -33,7 +33,7 @@ debugging session, not a demo — see "What to check first" below.
 ## Building
 
 ```
-cd Clicky.Mac
+cd Auto.Mac
 dotnet build
 dotnet run
 ```
@@ -50,7 +50,7 @@ Roughly in order of how likely each is to be the actual problem, worst first:
 1. **Hotkeys don't fire at all.** `Native/Carbon.cs` and `Services/MacHotkeyService.cs`
    are the riskiest untested piece — the P/Invoke signatures are correct per Apple's
    documented headers, but the FourCC constants, struct layout, or `EventHandlerProc`
-   marshaling could still be subtly wrong. Check `clicky.log` for
+   marshaling could still be subtly wrong. Check `auto.log` for
    `RegisterEventHotKey failed` — if it's not even getting that far (no log line about
    hotkeys at all), the crash is likely happening inside `InstallEventHandler` or
    `NewEventHandlerUPP` before any hotkey registration is attempted.
@@ -61,7 +61,7 @@ Roughly in order of how likely each is to be the actual problem, worst first:
    instead if `Opened` fires too early.
 3. **No sound is captured.** Check `sox` is actually resolvable — `ResolveSoxPath()` in
    `MacAudioCaptureService.cs` tries common Homebrew paths and then `which sox` via a
-   login shell; run `clicky.log` past a push-to-talk press to see which path (if any) it
+   login shell; run `auto.log` past a push-to-talk press to see which path (if any) it
    picked, or whether it logged "sox not found".
 4. **Screenshots come back empty/black.** Almost always Screen Recording permission not
    yet granted — macOS won't prompt until the exact moment `screencapture` first tries to

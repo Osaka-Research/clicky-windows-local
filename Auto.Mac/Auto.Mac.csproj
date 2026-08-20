@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>ClickyMac</RootNamespace>
-    <AssemblyName>Clicky</AssemblyName>
+    <AssemblyName>Auto</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Clicky.Core\Clicky.Core.csproj" />
+    <ProjectReference Include="..\Auto.Core\Auto.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,11 +10,11 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Must happen before anything in Clicky.Core touches disk (Logger, AppSettings,
-        // LocalWhisperService) -- otherwise they'd fall back to the Windows build's
-        // "ClickyWindowsLocal" folder name and the two apps would collide over one
-        // settings.json / model cache / log file.
-        AppPaths.AppFolderName = "Clicky";
+        // Must happen before anything in Auto.Core touches disk (Logger, AppSettings,
+        // LocalWhisperService) -- otherwise it'd fall back to the Windows build's "Auto"
+        // folder name and the two apps would collide over one settings.json / model
+        // cache / log file when both are built and run on the same machine (see AppPaths).
+        AppPaths.AppFolderName = "AutoMac";
 
         bool firstRun = !AppSettings.Exists();
         if (firstRun)

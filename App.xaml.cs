@@ -30,7 +30,7 @@ public partial class App
         Logger.Log("=== Auto (local) starting ===");
 
         // Single-instance guard
-        var mutex = new System.Threading.Mutex(true, "ClickyWindowsLocal_SingleInstance", out bool isFirst);
+        var mutex = new System.Threading.Mutex(true, "Auto_SingleInstance", out bool isFirst);
         if (!isFirst)
         {
             System.Windows.MessageBox.Show(
@@ -41,7 +41,7 @@ public partial class App
         }
 
         _settings = AppSettings.Load();
-        Logger.Log($"Settings loaded from: {Logger.LogFilePath.Replace("clicky.log", "settings.json")}");
+        Logger.Log($"Settings loaded from: {Logger.LogFilePath.Replace("auto.log", "settings.json")}");
 
         if (!ValidateSettings())
         {

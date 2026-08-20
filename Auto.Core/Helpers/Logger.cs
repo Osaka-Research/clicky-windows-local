@@ -2,7 +2,7 @@ namespace ClickyWindows.Helpers;
 
 /// <summary>
 /// Simple file logger. Writes timestamped lines to the app-data folder (named via
-/// AppPaths.AppFolderName) \ clicky.log. Also calls an optional UI callback (for
+/// AppPaths.AppFolderName) \ auto.log. Also calls an optional UI callback (for
 /// tray balloon tips on errors).
 /// </summary>
 public static class Logger
@@ -14,8 +14,8 @@ public static class Logger
     public static Action<string>? OnInfo;    // hooked by App to show balloon tip
 
     // Lazy, not a static constructor: AppPaths.AppFolderName must be set by the
-    // platform entry point (Windows keeps the existing "ClickyWindowsLocal", Mac
-    // sets "Clicky") before the log file location is decided.
+    // platform entry point (Windows: "Auto", Mac: "AutoMac", server: "AutoServer")
+    // before the log file location is decided.
     private static string LogPath
     {
         get
@@ -24,7 +24,7 @@ public static class Logger
             {
                 _logPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    AppPaths.AppFolderName, "clicky.log");
+                    AppPaths.AppFolderName, "auto.log");
                 try
                 {
                     var dir = Path.GetDirectoryName(_logPath)!;

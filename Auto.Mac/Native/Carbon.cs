@@ -8,7 +8,7 @@ namespace ClickyMac.Native;
 /// every macOS hotkey utility (this codebase included, conceptually) still relies on;
 /// Carbon itself is deprecated for UI, but this specific API keeps working on current
 /// macOS. UNTESTED: written from documented signatures with no Mac available to verify
-/// against — see Clicky.Mac/README.md for what to check first if hotkeys don't fire.
+/// against — see Auto.Mac/README.md for what to check first if hotkeys don't fire.
 /// </summary>
 internal static class Carbon
 {

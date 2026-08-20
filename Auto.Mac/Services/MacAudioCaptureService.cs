@@ -10,7 +10,7 @@ namespace ClickyMac.Services;
 /// could cover for both microphone and loopback capture, and sox already does exactly the
 /// PCM16/16kHz/mono conversion Whisper needs, so there's no resampling code needed here at
 /// all (unlike the Windows build's manual float32-to-PCM16 conversion). Requires sox to be
-/// on PATH or in a common Homebrew location -- see Clicky.Mac/README.md.
+/// on PATH or in a common Homebrew location -- see Auto.Mac/README.md.
 ///
 /// System Audio mode: macOS has no OS-level loopback API (unlike WASAPI). This captures
 /// from a named CoreAudio input device instead -- set AppSettings.SystemAudioInputDeviceName

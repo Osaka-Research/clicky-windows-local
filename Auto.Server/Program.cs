@@ -8,14 +8,14 @@ using ClickyWindows.Settings;
 // Separate app-data folder from every client -- its own settings.json (API key, model,
 // Whisper size, auth token), its own log file, never confused with a Windows/Mac install
 // running on the same machine for local testing.
-AppPaths.AppFolderName = "ClickyServer";
+AppPaths.AppFolderName = "AutoServer";
 
 var settings = AppSettings.Load();
 if (string.IsNullOrWhiteSpace(settings.AnthropicApiKey))
 {
     settings.Save(); // write a template so there's something to edit
     Console.WriteLine("No AnthropicApiKey configured yet. Edit this file and restart:");
-    Console.WriteLine($"  {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ClickyServer", "settings.json")}");
+    Console.WriteLine($"  {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AutoServer", "settings.json")}");
     return;
 }
 if (string.IsNullOrWhiteSpace(settings.ServerAuthToken))

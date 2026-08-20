@@ -120,7 +120,7 @@ Toolkit 12.x** — not 13.x, even though 13.x is winget's/NVIDIA's current defau
 Windows DLL loading is exact-name, no cross-major fallback: if the installed Toolkit
 is the wrong major version, `ggml-cuda-whisper.dll` fails to load its dependency and
 the *whole app crashes* on the `WhisperFactory.FromPath()` call — silently, no managed
-exception, nothing in `clicky.log` — rather than gracefully falling back to CPU. Multiple
+exception, nothing in `auto.log` — rather than gracefully falling back to CPU. Multiple
 CUDA Toolkit major versions can be installed side by side with no conflict (they live in
 separate `CUDA\v12.x` / `CUDA\v13.x` folders under `C:\Program Files\NVIDIA GPU Computing
 Toolkit`), so if you already have a newer one for something else, just add 12.x alongside
