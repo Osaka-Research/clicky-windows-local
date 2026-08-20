@@ -1,6 +1,6 @@
 using System.Windows.Forms;
 
-namespace ClickyWindows.Helpers;
+namespace Auto.Helpers;
 
 /// <summary>
 /// Converts coordinates between coordinate spaces:

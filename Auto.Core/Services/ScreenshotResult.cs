@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 public record ScreenshotResult(
     byte[] JpegBytes,      // raw JPEG data

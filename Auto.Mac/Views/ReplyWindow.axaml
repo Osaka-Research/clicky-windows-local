@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="ClickyMac.Views.ReplyWindow"
+        x:Class="Auto.Mac.Views.ReplyWindow"
         Title="Auto"
         Width="460"
         SizeToContent="Height"

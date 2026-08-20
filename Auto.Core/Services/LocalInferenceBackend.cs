@@ -1,7 +1,7 @@
-using ClickyWindows.Models;
-using ClickyWindows.Settings;
+using Auto.Models;
+using Auto.Settings;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// The default backend: local Whisper transcription + a direct Claude API call, exactly

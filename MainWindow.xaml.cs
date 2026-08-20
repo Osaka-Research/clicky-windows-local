@@ -1,9 +1,9 @@
 using System.Windows;
-using ClickyWindows.Models;
-using ClickyWindows.Services;
-using ClickyWindows.Settings;
+using Auto.Models;
+using Auto.Services;
+using Auto.Settings;
 
-namespace ClickyWindows;
+namespace Auto;
 
 /// <summary>
 /// Invisible message-pump window. Hosts the HotkeyService (requires an HWND)
@@ -88,7 +88,7 @@ public partial class MainWindow : Window
         // silent failures, so it's not just a log line no one will see.
         foreach (var failed in _hotkey.FailedHotkeys)
         {
-            var desc = ClickyWindows.Helpers.Win32.DescribeHotkey(failed.Modifiers, failed.VirtualKey);
+            var desc = Auto.Helpers.Win32.DescribeHotkey(failed.Modifiers, failed.VirtualKey);
             _overlay.ShowFeedback($"{desc} is already used by another app — that mode won't respond");
         }
     }

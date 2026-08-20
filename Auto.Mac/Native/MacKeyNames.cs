@@ -1,4 +1,4 @@
-namespace ClickyMac.Native;
+namespace Auto.Mac.Native;
 
 /// <summary>
 /// Human-readable form of a Carbon modifier/keycode combination, e.g. "Ctrl+Shift+1" --

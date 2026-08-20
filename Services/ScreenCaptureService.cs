@@ -1,9 +1,9 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
-using ClickyWindows.Helpers;
+using Auto.Helpers;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Captures JPEG screenshots of all connected monitors using GDI (System.Drawing).

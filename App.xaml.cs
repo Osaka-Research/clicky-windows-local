@@ -1,11 +1,11 @@
 using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
-using ClickyWindows.Helpers;
-using ClickyWindows.Services;
-using ClickyWindows.Settings;
+using Auto.Helpers;
+using Auto.Services;
+using Auto.Settings;
 
-namespace ClickyWindows;
+namespace Auto;
 
 /// <summary>
 /// Application entry point. Owns the system tray icon and coordinates startup.

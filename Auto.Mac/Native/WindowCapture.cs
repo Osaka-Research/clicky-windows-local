@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
-using ClickyWindows.Helpers;
+using Auto.Helpers;
 
-namespace ClickyMac.Native;
+namespace Auto.Mac.Native;
 
 /// <summary>
 /// macOS's actual equivalent of Windows' SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE):

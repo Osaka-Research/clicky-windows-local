@@ -1,11 +1,11 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
-using ClickyWindows.Helpers;
-using ClickyWindows.Models;
+using Auto.Helpers;
+using Auto.Models;
 using Screen = System.Windows.Forms.Screen;
 
-namespace ClickyWindows;
+namespace Auto;
 
 /// <summary>
 /// Small always-on-top panel, bottom-right corner, that streams Claude's reply in real

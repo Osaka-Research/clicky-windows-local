@@ -3,15 +3,15 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using ClickyMac.Native;
-using ClickyMac.Services;
-using ClickyMac.Views;
-using ClickyWindows.Helpers;
-using ClickyWindows.Models;
-using ClickyWindows.Services;
-using ClickyWindows.Settings;
+using Auto.Mac.Native;
+using Auto.Mac.Services;
+using Auto.Mac.Views;
+using Auto.Helpers;
+using Auto.Models;
+using Auto.Services;
+using Auto.Settings;
 
-namespace ClickyMac;
+namespace Auto.Mac;
 
 /// <summary>
 /// Application entry point -- tray-only, no main window (mirrors the Windows build's

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace ClickyMac.Native;
+namespace Auto.Mac.Native;
 
 /// <summary>
 /// P/Invoke bindings for the small slice of the Carbon Event Manager still used for

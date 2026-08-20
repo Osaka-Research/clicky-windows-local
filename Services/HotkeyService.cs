@@ -1,9 +1,9 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using ClickyWindows.Helpers;
+using Auto.Helpers;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Registers one or more global push-to-talk hotkeys using Win32 RegisterHotKey.

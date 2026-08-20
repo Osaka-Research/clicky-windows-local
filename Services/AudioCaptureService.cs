@@ -1,8 +1,8 @@
-using ClickyWindows.Helpers;
+using Auto.Helpers;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Captures audio via WASAPI and converts to PCM16 at 16kHz mono — the format Whisper

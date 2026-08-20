@@ -1,9 +1,9 @@
 using Avalonia;
-using ClickyMac.Native;
-using ClickyWindows.Helpers;
-using ClickyWindows.Settings;
+using Auto.Mac.Native;
+using Auto.Helpers;
+using Auto.Settings;
 
-namespace ClickyMac;
+namespace Auto.Mac;
 
 internal static class Program
 {

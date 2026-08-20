@@ -5,11 +5,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using ClickyWindows.Helpers;
-using ClickyWindows.Models;
-using ClickyWindows.Settings;
+using Auto.Helpers;
+using Auto.Models;
+using Auto.Settings;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 public record ClaudeResponse(string Text, List<PointTarget> Points);
 public record PointTarget(int X, int Y, string Label);

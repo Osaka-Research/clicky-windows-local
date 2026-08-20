@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Captures JPEG screenshots. Windows implements this over GDI (System.Drawing);

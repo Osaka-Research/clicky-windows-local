@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using ClickyWindows.Settings;
+using Auto.Settings;
 
-namespace ClickyMac.Views;
+namespace Auto.Mac.Views;
 
 /// <summary>
 /// Minimal settings dialog -- Avalonia port of the WPF SettingsWindow, same fields.

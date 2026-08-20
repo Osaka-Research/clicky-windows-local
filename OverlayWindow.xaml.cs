@@ -5,10 +5,10 @@ using System.Windows.Media.Animation;
 using WpfColor = System.Windows.Media.Color;
 using WpfRect = System.Windows.Shapes.Rectangle;
 using System.Windows.Threading;
-using ClickyWindows.Helpers;
-using ClickyWindows.Models;
+using Auto.Helpers;
+using Auto.Models;
 
-namespace ClickyWindows;
+namespace Auto;
 
 public partial class OverlayWindow : Window
 {

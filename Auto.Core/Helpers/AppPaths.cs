@@ -1,4 +1,4 @@
-namespace ClickyWindows.Helpers;
+namespace Auto.Helpers;
 
 /// <summary>
 /// The app-data folder name used for settings, logs, and the cached Whisper model.

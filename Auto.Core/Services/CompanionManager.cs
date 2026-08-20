@@ -1,8 +1,8 @@
-using ClickyWindows.Helpers;
-using ClickyWindows.Models;
-using ClickyWindows.Settings;
+using Auto.Helpers;
+using Auto.Models;
+using Auto.Settings;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Orchestrates the full voice interaction loop:

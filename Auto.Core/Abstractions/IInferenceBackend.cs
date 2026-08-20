@@ -1,4 +1,4 @@
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// The transcription + reasoning half of a turn: audio in, transcript out; transcript

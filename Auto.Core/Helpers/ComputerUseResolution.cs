@@ -1,4 +1,4 @@
-namespace ClickyWindows.Helpers;
+namespace Auto.Helpers;
 
 /// <summary>
 /// The portable half of coordinate handling: which of Claude Computer Use's standard

@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Drawing;
-using ClickyWindows.Helpers;
-using ClickyWindows.Services;
+using Auto.Helpers;
+using Auto.Services;
 
-namespace ClickyMac.Services;
+namespace Auto.Mac.Services;
 
 /// <summary>
 /// Screenshots via the built-in `screencapture` CLI rather than any capture framework

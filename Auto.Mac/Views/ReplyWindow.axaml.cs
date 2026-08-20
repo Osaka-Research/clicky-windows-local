@@ -3,10 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
-using ClickyMac.Native;
-using ClickyWindows.Models;
+using Auto.Mac.Native;
+using Auto.Models;
 
-namespace ClickyMac.Views;
+namespace Auto.Mac.Views;
 
 /// <summary>
 /// Avalonia port of the WPF ReplyWindow: a small always-on-top, borderless panel,

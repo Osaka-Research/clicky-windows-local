@@ -1,8 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
-using ClickyWindows.Settings;
+using Auto.Settings;
 
-namespace ClickyWindows;
+namespace Auto;
 
 /// <summary>
 /// In-app settings editor — replaces asking the user to hand-edit settings.json in

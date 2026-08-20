@@ -1,9 +1,9 @@
 using System.Text;
-using ClickyWindows.Helpers;
+using Auto.Helpers;
 using Whisper.net;
 using Whisper.net.Ggml;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Fully offline speech-to-text via whisper.cpp (Whisper.net bindings). There's no

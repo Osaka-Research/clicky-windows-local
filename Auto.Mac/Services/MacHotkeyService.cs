@@ -1,7 +1,7 @@
-using ClickyMac.Native;
-using ClickyWindows.Helpers;
+using Auto.Mac.Native;
+using Auto.Helpers;
 
-namespace ClickyMac.Services;
+namespace Auto.Mac.Services;
 
 public record FailedHotkey(uint Modifiers, uint VirtualKey, int OsStatus);
 

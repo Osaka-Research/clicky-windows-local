@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using ClickyWindows.Helpers;
-using ClickyWindows.Services;
+using Auto.Helpers;
+using Auto.Services;
 
-namespace ClickyMac.Services;
+namespace Auto.Mac.Services;
 
 /// <summary>
 /// Captures audio via `sox` (Homebrew: `brew install sox`) rather than a native CoreAudio

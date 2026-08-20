@@ -1,4 +1,4 @@
-namespace ClickyWindows.Helpers;
+namespace Auto.Helpers;
 
 /// <summary>
 /// Simple file logger. Writes timestamped lines to the app-data folder (named via

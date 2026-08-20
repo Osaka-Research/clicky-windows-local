@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Drawing;
-using ClickyWindows.Helpers;
-using ClickyWindows.Models;
-using ClickyWindows.Services;
-using ClickyWindows.Settings;
+using Auto.Helpers;
+using Auto.Models;
+using Auto.Services;
+using Auto.Settings;
 
 // Separate app-data folder from every client -- its own settings.json (API key, model,
 // Whisper size, auth token), its own log file, never confused with a Windows/Mac install

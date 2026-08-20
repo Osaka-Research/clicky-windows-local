@@ -1,4 +1,4 @@
-namespace ClickyWindows.Models;
+namespace Auto.Models;
 
 public record ConversationTurn(string Role, string Content);
 

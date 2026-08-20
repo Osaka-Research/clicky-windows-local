@@ -1,9 +1,9 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using ClickyWindows.Helpers;
+using Auto.Helpers;
 
-namespace ClickyWindows.Settings;
+namespace Auto.Settings;
 
 public class AppSettings
 {
@@ -32,7 +32,7 @@ public class AppSettings
 
     // Server-only: the shared secret clients must send as "Authorization: Bearer <token>".
     // Unused by Windows/Mac clients -- only Auto.Server reads this field, from its own
-    // separate settings.json (see AppPaths.AppFolderName = "ClickyServer" in its Program.cs).
+    // separate settings.json (see AppPaths.AppFolderName = "AutoServer" in its Program.cs).
     public string ServerAuthToken { get; set; } = "";
 
     // Hotkey field values are raw platform key codes -- each platform's HotkeyService

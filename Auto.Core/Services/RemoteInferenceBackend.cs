@@ -2,9 +2,9 @@ using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
-using ClickyWindows.Models;
+using Auto.Models;
 
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Talks to an Auto.Server instance instead of running Whisper/Claude on this machine --

@@ -1,5 +1,5 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="ClickyMac.App"
+             x:Class="Auto.Mac.App"
              RequestedThemeVariant="Dark">
 </Application>

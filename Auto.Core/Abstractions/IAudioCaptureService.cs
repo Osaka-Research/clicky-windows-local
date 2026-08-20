@@ -1,4 +1,4 @@
-namespace ClickyWindows.Services;
+namespace Auto.Services;
 
 /// <summary>
 /// Captures audio and delivers it as PCM16 16kHz mono chunks — the format Whisper

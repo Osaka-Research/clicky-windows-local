@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace ClickyWindows.Helpers;
+namespace Auto.Helpers;
 
 /// <summary>
 /// All Win32 P/Invoke declarations used by the app.
