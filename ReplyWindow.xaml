@@ -45,7 +45,7 @@
                        TextWrapping="Wrap"
                        Margin="0,0,0,8"/>
 
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" MaxHeight="420">
+            <ScrollViewer x:Name="ReplyScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto" MaxHeight="420">
                 <TextBlock x:Name="ReplyText"
                            Foreground="#ECEEED"
                            FontFamily="Segoe UI"

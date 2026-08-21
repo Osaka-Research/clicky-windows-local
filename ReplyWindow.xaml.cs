@@ -31,17 +31,33 @@ public partial class ReplyWindow : Window
     }
 
     /// <summary>
-    /// Opens the panel (clearing any previous reply) as soon as Whisper produces a
-    /// transcript -- shown immediately, before Claude has even started replying, so a
-    /// mis-transcription is visible right away instead of only after a confusing answer.
-    /// [mode] labels the panel with which hotkey produced this turn.
+    /// Opens the panel as soon as Whisper produces a transcript -- shown immediately,
+    /// before Claude has even started replying, so a mis-transcription is visible right
+    /// away instead of only after a confusing answer. [mode] labels the panel with which
+    /// hotkey produced this turn.
+    ///
+    /// System Audio mode runs continuously (toggle on/off, one turn after another with no
+    /// key held in between), so each turn there is appended as a new "You: ... / Auto: ..."
+    /// entry instead of wiping the previous one -- reads like a running chat log rather
+    /// than replacing the last answer before there's been a chance to read it. Every other
+    /// mode is single-shot per key press, so it keeps clearing to just the latest turn.
     /// </summary>
     public void ShowTranscript(string transcript, InteractionMode mode)
     {
         Dispatcher.Invoke(() =>
         {
-            TranscriptText.Text = $"“{transcript}”";
-            ReplyText.Text = "";
+            if (mode == InteractionMode.SystemAudio)
+            {
+                if (ReplyText.Text.Length > 0) ReplyText.Text += "\n\n";
+                ReplyText.Text += $"You: {transcript}\nAuto: ";
+                TranscriptText.Text = "";
+            }
+            else
+            {
+                TranscriptText.Text = $"“{transcript}”";
+                ReplyText.Text = "";
+            }
+
             var (label, colorHex) = mode switch
             {
                 InteractionMode.Action => ("Auto — Action", "#7C8AFF"),       // periwinkle, matches original accent
@@ -60,6 +76,7 @@ public partial class ReplyWindow : Window
             Show();
             PositionTopRight();
             Activate();
+            ReplyScroll.ScrollToEnd();
         });
     }
 
@@ -67,7 +84,22 @@ public partial class ReplyWindow : Window
     public void AppendChunk(string chunk)
     {
         if (string.IsNullOrEmpty(chunk)) return;
-        Dispatcher.Invoke(() => ReplyText.Text += chunk);
+        Dispatcher.Invoke(() =>
+        {
+            ReplyText.Text += chunk;
+            ReplyScroll.ScrollToEnd();
+        });
+    }
+
+    /// <summary>Clears the chat log -- called when a fresh System Audio continuous
+    /// session starts, so it doesn't carry over turns from whatever was showing before.</summary>
+    public void ResetChat()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            TranscriptText.Text = "";
+            ReplyText.Text = "";
+        });
     }
 
     // Fixed top-right corner — grows downward as text streams in, capped by MaxHeight

@@ -77,6 +77,9 @@ public class CompanionManager : IAsyncDisposable
     public event Action<string>? ReplyChunkReceived;
     /// <summary>Fires when a reply in progress is interrupted by a new push-to-talk press — UI should hide the panel.</summary>
     public event Action? ReplyDismissed;
+    /// <summary>Fires when a fresh System Audio continuous session starts (toggle pressed while off) —
+    /// UI should clear any chat log left over from a previous session.</summary>
+    public event Action? ContinuousSessionStarted;
 
     private AppState _state = AppState.Idle;
     private AppState State
@@ -297,6 +300,7 @@ public class CompanionManager : IAsyncDisposable
         _modeThisTurn = InteractionMode.SystemAudio;
         State = AppState.Listening;
         _sessionCts = new CancellationTokenSource();
+        ContinuousSessionStarted?.Invoke();
 
         lock (_continuousSegment) _continuousSegment.Clear();
         _continuousHasSpeech = false;

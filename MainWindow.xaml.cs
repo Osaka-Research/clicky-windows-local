@@ -75,6 +75,7 @@ public partial class MainWindow : Window
         _companion.TranscriptReady += (transcript, mode) => _reply.ShowTranscript(transcript, mode);
         _companion.ReplyChunkReceived += chunk => _reply.AppendChunk(chunk);
         _companion.ReplyDismissed += () => Dispatcher.Invoke(() => _reply.Hide());
+        _companion.ContinuousSessionStarted += () => _reply.ResetChat();
 
         SourceInitialized += OnSourceInitialized;
         Closing += OnClosing;
