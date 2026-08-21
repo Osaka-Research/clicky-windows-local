@@ -225,18 +225,10 @@ public class CompanionManager : IAsyncDisposable
         {
             TranscriptReady?.Invoke(transcript, _modeThisTurn);
 
-            // System Audio mode: this text was transcribed from content playing on the
-            // computer (a video, a call), not typed/said by the user directly -- frame it
-            // as such so Claude reacts to/answers it rather than treating it as a random
-            // fragment. Deliberately worded with no mention of "audio"/"speakers"/"hear" --
-            // by this point it's just text, and describing it as overheard audio previously
-            // led the model to reason its way into refusing to answer over an imagined
-            // "someone might hear my reply" concern. There's no audio in this prompt at all.
+            // System Audio mode: keep the answer short and plain, no capture-source framing.
             var messageForClaude = _modeThisTurn == InteractionMode.SystemAudio
-                ? $"[The following text was captured from content currently playing on the " +
-                  "user's computer -- a video, a call, a recording, anything -- not typed or " +
-                  $"asked by the user directly. Answer/react to it directly, exactly as you " +
-                  $"would if it had been asked to you directly]: \"{transcript}\""
+                ? $"Answer in under 100 words, like a human talking, using simple everyday " +
+                  $"language, no jargon: \"{transcript}\""
                 : transcript;
 
             await ProcessResponseAsync(messageForClaude, screenshots);
