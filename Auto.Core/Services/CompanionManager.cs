@@ -261,13 +261,12 @@ public class CompanionManager : IAsyncDisposable
         {
             TranscriptReady?.Invoke(transcript, _modeThisTurn);
 
-            // System Audio and Answer modes: keep the answer short and plain, no framing.
-            var messageForClaude = _modeThisTurn is InteractionMode.SystemAudio or InteractionMode.Answer
-                ? $"Answer in under 100 words, like a human talking, using simple everyday " +
-                  $"language, no jargon: \"{transcript}\""
-                : transcript;
-
-            await ProcessResponseAsync(messageForClaude, screenshots);
+            // Sent as-is for every mode -- the system prompt (ClaudeService.CommonPromptTail)
+            // already fully specifies the answer style (first-person spoken script, 60-130
+            // words, no restating the question). A per-message style wrapper here used to
+            // fight that with a generic "simple language" instruction instead of reinforcing
+            // the actual interview-script behavior.
+            await ProcessResponseAsync(transcript, screenshots);
         }
         else
         {
@@ -409,9 +408,7 @@ public class CompanionManager : IAsyncDisposable
                 if (!string.IsNullOrWhiteSpace(transcript))
                 {
                     TranscriptReady?.Invoke(transcript, InteractionMode.SystemAudio);
-                    var messageForClaude = $"Answer in under 100 words, like a human talking, using " +
-                        $"simple everyday language, no jargon: \"{transcript}\"";
-                    await ProcessResponseAsync(messageForClaude, []);
+                    await ProcessResponseAsync(transcript, []);
                 }
 
                 if (_continuousAudioActive) State = AppState.Listening;
