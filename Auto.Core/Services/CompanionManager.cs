@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using Auto.Helpers;
 using Auto.Models;
 using Auto.Settings;
@@ -31,6 +32,22 @@ public class CompanionManager : IAsyncDisposable
     private CancellationTokenSource? _sessionCts;
     private readonly List<byte> _audioBuffer = new();
     private InteractionMode _modeThisTurn = InteractionMode.Action;
+
+    // ── System Audio continuous mode (toggle on/off instead of hold/release) ──
+    // No hold key to mark turn boundaries here, so silence in the RMS level (from the
+    // same loopback stream, already computed for the level meter) marks the end of a
+    // turn instead: once level drops below threshold for VadSilenceCut after having
+    // been above it, whatever's buffered since the last cut is handed off as one turn.
+    // Turns are queued and answered one at a time while capture keeps running underneath.
+    private bool _continuousAudioActive;
+    private Channel<byte[]>? _continuousTurnChannel;
+    private readonly List<byte> _continuousSegment = new();
+    private bool _continuousHasSpeech;
+    private DateTime _continuousLastLoud = DateTime.MinValue;
+
+    private const float ContinuousVadThreshold = 0.03f;
+    private static readonly TimeSpan ContinuousSilenceCut = TimeSpan.FromMilliseconds(900);
+    private const int ContinuousMinSegmentBytes = 16000; // ~0.5s of 16kHz mono PCM16
 
     public event Action<AppState>? StateChanged;
     public event Action<double, double, string>? PointReceived;
@@ -104,9 +121,11 @@ public class CompanionManager : IAsyncDisposable
         return true;
     }
 
-    public Task OnPushToTalkPressed(InteractionMode mode = InteractionMode.Action)
+    public async Task OnPushToTalkPressed(InteractionMode mode = InteractionMode.Action)
     {
-        if (!TryBeginNewSession("Push-to-talk pressed")) return Task.CompletedTask;
+        if (_continuousAudioActive) await StopContinuousSystemAudioAsync();
+
+        if (!TryBeginNewSession("Push-to-talk pressed")) return;
 
         Logger.Log($"[Hotkey] Push-to-talk PRESSED (mode={mode})");
         _modeThisTurn = mode;
@@ -117,8 +136,6 @@ public class CompanionManager : IAsyncDisposable
         _audio.AudioChunkAvailable += OnAudioChunk;
         _audio.Start(loopback: mode == InteractionMode.SystemAudio);
         Logger.Log("[Audio] capture started");
-
-        return Task.CompletedTask;
     }
 
     // Shown in the reply panel's "you said" line -- short, since the real instruction below is not.
@@ -143,6 +160,8 @@ public class CompanionManager : IAsyncDisposable
     /// </summary>
     public async Task OnScreenshotQaTriggered()
     {
+        if (_continuousAudioActive) await StopContinuousSystemAudioAsync();
+
         if (!TryBeginNewSession("Screenshot Q&A pressed")) return;
 
         Logger.Log("[Hotkey] Screenshot Q&A PRESSED");
@@ -240,6 +259,127 @@ public class CompanionManager : IAsyncDisposable
                 FeedbackReceived?.Invoke("didn't catch that");
             State = AppState.Idle;
         }
+    }
+
+    // ── System Audio continuous mode ────────────────────────────────────────
+
+    /// <summary>
+    /// Ctrl+Shift+3 as a toggle instead of hold/release: first press starts continuous
+    /// listening (turns are cut automatically on silence, answered one at a time, capture
+    /// keeps running), second press on the same hotkey stops it.
+    /// </summary>
+    public async Task OnSystemAudioTogglePressed()
+    {
+        if (_continuousAudioActive)
+        {
+            await StopContinuousSystemAudioAsync();
+            return;
+        }
+
+        if (!TryBeginNewSession("System Audio toggle pressed")) return;
+
+        Logger.Log("[Hotkey] System Audio continuous mode ON");
+        _continuousAudioActive = true;
+        _modeThisTurn = InteractionMode.SystemAudio;
+        State = AppState.Listening;
+        _sessionCts = new CancellationTokenSource();
+
+        lock (_continuousSegment) _continuousSegment.Clear();
+        _continuousHasSpeech = false;
+        _continuousLastLoud = DateTime.MinValue;
+
+        _continuousTurnChannel = Channel.CreateUnbounded<byte[]>();
+
+        _audio.PowerLevelChanged += OnContinuousLevel;
+        _audio.AudioChunkAvailable += OnContinuousAudioChunk;
+        _audio.Start(loopback: true);
+        Logger.Log("[Audio] continuous capture started");
+
+        _ = ContinuousTurnLoopAsync(_continuousTurnChannel, _sessionCts.Token);
+    }
+
+    private async Task StopContinuousSystemAudioAsync()
+    {
+        Logger.Log("[Hotkey] System Audio continuous mode OFF");
+        _continuousAudioActive = false;
+
+        _audio.PowerLevelChanged -= OnContinuousLevel;
+        _audio.AudioChunkAvailable -= OnContinuousAudioChunk;
+        await StopAudioWithTimeoutAsync();
+
+        _sessionCts?.Cancel();
+        _continuousTurnChannel?.Writer.TryComplete();
+        _continuousTurnChannel = null;
+
+        lock (_continuousSegment) _continuousSegment.Clear();
+        State = AppState.Idle;
+    }
+
+    private void OnContinuousLevel(float rms)
+    {
+        if (rms >= ContinuousVadThreshold)
+        {
+            _continuousLastLoud = DateTime.UtcNow;
+            _continuousHasSpeech = true;
+        }
+    }
+
+    private void OnContinuousAudioChunk(byte[] pcm16)
+    {
+        lock (_continuousSegment) _continuousSegment.AddRange(pcm16);
+
+        if (!_continuousHasSpeech || _continuousLastLoud == DateTime.MinValue) return;
+        if (DateTime.UtcNow - _continuousLastLoud < ContinuousSilenceCut) return;
+
+        byte[] segment;
+        lock (_continuousSegment)
+        {
+            segment = _continuousSegment.ToArray();
+            _continuousSegment.Clear();
+        }
+        _continuousHasSpeech = false;
+        _continuousLastLoud = DateTime.MinValue;
+
+        if (segment.Length >= ContinuousMinSegmentBytes)
+            _continuousTurnChannel?.Writer.TryWrite(segment);
+    }
+
+    /// <summary>Consumes cut turns one at a time so overlapping segments never race each
+    /// other into Claude — any turn that lands while one's still being answered just waits
+    /// in the channel.</summary>
+    private async Task ContinuousTurnLoopAsync(Channel<byte[]> channel, CancellationToken ct)
+    {
+        try
+        {
+            await foreach (var clip in channel.Reader.ReadAllAsync(ct))
+            {
+                State = AppState.Processing;
+
+                string transcript = "";
+                try
+                {
+                    Logger.Log($"[Whisper] Transcribing continuous segment ({clip.Length / 32000.0:F1}s)...");
+                    transcript = await _inference.TranscribeAsync(clip, ct);
+                    Logger.Info($"Heard (continuous): \"{transcript}\"");
+                }
+                catch (OperationCanceledException) { break; }
+                catch (Exception ex)
+                {
+                    Logger.Error($"[Whisper] Continuous transcription error: {ex.Message}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(transcript))
+                {
+                    TranscriptReady?.Invoke(transcript, InteractionMode.SystemAudio);
+                    var messageForClaude = $"Answer in under 100 words, like a human talking, using " +
+                        $"simple everyday language, no jargon: \"{transcript}\"";
+                    await ProcessResponseAsync(messageForClaude, []);
+                }
+
+                if (_continuousAudioActive) State = AppState.Listening;
+            }
+        }
+        catch (OperationCanceledException) { }
     }
 
     private void OnAudioChunk(byte[] pcm16)
@@ -383,6 +523,9 @@ public class CompanionManager : IAsyncDisposable
     {
         _sessionCts?.Cancel();
         _audio.AudioChunkAvailable -= OnAudioChunk;
+        _audio.PowerLevelChanged -= OnContinuousLevel;
+        _audio.AudioChunkAvailable -= OnContinuousAudioChunk;
+        _continuousTurnChannel?.Writer.TryComplete();
         _audio.Dispose();
         await _inference.DisposeAsync();
         _sessionCts?.Dispose();

@@ -40,11 +40,13 @@ public partial class MainWindow : Window
             onReleased: () => _ = _companion.OnPushToTalkReleased());
 
         // System Audio mode: listens to whatever's playing through speakers (WASAPI
-        // loopback) instead of the mic, no screenshot -- react to a call/video.
+        // loopback) instead of the mic, no screenshot -- react to a call/video. Toggle,
+        // not hold/release: first press starts continuous listening (turns cut
+        // automatically on silence), second press on the same hotkey stops it.
         _hotkey.AddHotkey(
             settings.SystemAudioHotkeyModifiers, settings.SystemAudioHotkeyVirtualKey,
-            onPressed: () => _ = _companion.OnPushToTalkPressed(InteractionMode.SystemAudio),
-            onReleased: () => _ = _companion.OnPushToTalkReleased());
+            onPressed: () => _ = _companion.OnSystemAudioTogglePressed(),
+            onReleased: () => { });
 
         // Screenshot Q&A: fires on press alone, no hold/release, no mic -- one screenshot,
         // answer everything visible in it.
