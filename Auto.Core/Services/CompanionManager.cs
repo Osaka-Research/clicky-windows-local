@@ -225,8 +225,8 @@ public class CompanionManager : IAsyncDisposable
         {
             TranscriptReady?.Invoke(transcript, _modeThisTurn);
 
-            // System Audio mode: keep the answer short and plain, no capture-source framing.
-            var messageForClaude = _modeThisTurn == InteractionMode.SystemAudio
+            // System Audio and Answer modes: keep the answer short and plain, no framing.
+            var messageForClaude = _modeThisTurn is InteractionMode.SystemAudio or InteractionMode.Answer
                 ? $"Answer in under 100 words, like a human talking, using simple everyday " +
                   $"language, no jargon: \"{transcript}\""
                 : transcript;
