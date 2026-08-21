@@ -36,16 +36,30 @@ public class CompanionManager : IAsyncDisposable
     // ── System Audio continuous mode (toggle on/off instead of hold/release) ──
     // No hold key to mark turn boundaries here, so silence in the RMS level (from the
     // same loopback stream, already computed for the level meter) marks the end of a
-    // turn instead: once level drops below threshold for VadSilenceCut after having
-    // been above it, whatever's buffered since the last cut is handed off as one turn.
-    // Turns are queued and answered one at a time while capture keeps running underneath.
+    // turn instead: once level drops below threshold for ContinuousSilenceCut after
+    // having been above it, whatever's buffered since the last cut is handed off as one
+    // turn. Turns are queued and answered one at a time while capture keeps running.
+    //
+    // There's no fixed level that works everywhere -- a quiet room and a noisy one need
+    // different cutoffs, and this pipeline has no noise suppression of its own (raw WASAPI
+    // loopback straight to PCM16). So the threshold is calibrated per session: the first
+    // ContinuousCalibrationWindow of capture is treated as ambient noise, not speech, and
+    // the lowest RMS seen in that window becomes the noise floor the cutoff sits above.
     private bool _continuousAudioActive;
     private Channel<byte[]>? _continuousTurnChannel;
     private readonly List<byte> _continuousSegment = new();
     private bool _continuousHasSpeech;
     private DateTime _continuousLastLoud = DateTime.MinValue;
 
-    private const float ContinuousVadThreshold = 0.03f;
+    private bool _continuousCalibrating;
+    private DateTime _continuousCalibrationStart;
+    private float _continuousCalibrationMin;
+    private float _continuousVadThreshold;
+
+    private static readonly TimeSpan ContinuousCalibrationWindow = TimeSpan.FromMilliseconds(600);
+    private const float ContinuousVadMargin = 0.02f;
+    private const float ContinuousVadMinThreshold = 0.015f;
+    private const float ContinuousVadMaxThreshold = 0.2f;
     private static readonly TimeSpan ContinuousSilenceCut = TimeSpan.FromMilliseconds(900);
     private const int ContinuousMinSegmentBytes = 16000; // ~0.5s of 16kHz mono PCM16
 
@@ -288,6 +302,11 @@ public class CompanionManager : IAsyncDisposable
         _continuousHasSpeech = false;
         _continuousLastLoud = DateTime.MinValue;
 
+        _continuousCalibrating = true;
+        _continuousCalibrationStart = DateTime.UtcNow;
+        _continuousCalibrationMin = float.MaxValue;
+        _continuousVadThreshold = ContinuousVadMinThreshold; // fallback until calibration completes
+
         _continuousTurnChannel = Channel.CreateUnbounded<byte[]>();
 
         _audio.PowerLevelChanged += OnContinuousLevel;
@@ -317,7 +336,22 @@ public class CompanionManager : IAsyncDisposable
 
     private void OnContinuousLevel(float rms)
     {
-        if (rms >= ContinuousVadThreshold)
+        if (_continuousCalibrating)
+        {
+            if (rms < _continuousCalibrationMin) _continuousCalibrationMin = rms;
+
+            if (DateTime.UtcNow - _continuousCalibrationStart >= ContinuousCalibrationWindow)
+            {
+                var floor = _continuousCalibrationMin == float.MaxValue ? 0f : _continuousCalibrationMin;
+                _continuousVadThreshold = Math.Clamp(
+                    floor + ContinuousVadMargin, ContinuousVadMinThreshold, ContinuousVadMaxThreshold);
+                _continuousCalibrating = false;
+                Logger.Log($"[VAD] Calibrated: noise floor={floor:F4}, threshold={_continuousVadThreshold:F4}");
+            }
+            return; // don't treat calibration-window audio as a speech trigger either way
+        }
+
+        if (rms >= _continuousVadThreshold)
         {
             _continuousLastLoud = DateTime.UtcNow;
             _continuousHasSpeech = true;
