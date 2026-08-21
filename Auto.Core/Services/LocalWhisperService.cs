@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using Auto.Helpers;
 using Whisper.net;
 using Whisper.net.Ggml;
@@ -113,6 +114,16 @@ public class LocalWhisperService : IAsyncDisposable
     // single segment it still won't return, but this at least caps how long we *wait*.
     private static readonly TimeSpan TranscribeTimeout = TimeSpan.FromSeconds(45);
 
+    // Whisper hallucinates these bracketed/parenthesized non-speech tags on silence or
+    // near-silence input instead of actually returning "" -- caught in the wild from real
+    // logs: "[BLANK_AUDIO]", "[INAUDIBLE]", sent straight to Claude as if they were the
+    // question and wasting a call on "sorry, didn't catch that" replies. Stripped out
+    // rather than rejecting the whole transcript, since a real segment can still end with
+    // a trailing tag (e.g. "How many frames does a Node-MCU has? [BLANK_AUDIO]").
+    private static readonly Regex NonSpeechTagPattern = new(
+        @"[\[\(]\s*(blank[_\s]?audio|silence|inaudible|no\s*speech|no\s*audio)\s*[\]\)]",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     /// <summary>
     /// Transcribes a buffer of PCM16 16kHz mono samples (as produced by IAudioCaptureService).
     /// Returns "" for silence/near-empty buffers, or if it times out.
@@ -151,7 +162,11 @@ public class LocalWhisperService : IAsyncDisposable
         }
 
         Logger.Log($"[Whisper] Transcribed in {sw.Elapsed.TotalSeconds:F1}s");
-        return sb.ToString().Trim();
+
+        var cleaned = NonSpeechTagPattern.Replace(sb.ToString(), "").Trim();
+        if (cleaned.Length == 0 && sb.Length > 0)
+            Logger.Log($"[Whisper] Discarded non-speech hallucination: \"{sb}\"");
+        return cleaned;
     }
 
     /// <summary>Wraps raw PCM16 16kHz mono bytes in a minimal WAV header — Whisper.net reads WAV streams.</summary>
